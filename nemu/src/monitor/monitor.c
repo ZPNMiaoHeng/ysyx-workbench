@@ -108,7 +108,7 @@ void init_monitor(int argc, char *argv[]) {
   init_rand();
 
   /* Open the log file. */
-  init_log(log_file);
+  init_log(log_file);            // log_file: stdout -> log_file
 
   /* Initialize memory. */
   init_mem();
@@ -123,7 +123,7 @@ void init_monitor(int argc, char *argv[]) {
   long img_size = load_img();
 
   /* Initialize differential testing. */
-  init_difftest(diff_so_file, img_size, difftest_port);
+  init_difftest(diff_so_file, img_size, difftest_port);  // TODO - port ??
 
   /* Initialize the simple debugger. */
   init_sdb();
