@@ -17,12 +17,14 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <memory/paddr.h>
 #include "sdb.h"
 
 static int is_batch_mode = false;
 
 void init_regex();
 void init_wp_pool();
+// word_t paddr_read(paddr_t addr, int len);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() {
@@ -47,9 +49,61 @@ static int cmd_c(char *args) {
   return 0;
 }
 
-
 static int cmd_q(char *args) {
   return -1;
+}
+
+static int cmd_si(char *args){
+  char *token = strtok(args, " ");
+  int step = atoi(token);
+  if(step == 0) {
+    cpu_exec(1);
+  } else if(step >= 1 && step < 11) {
+    cpu_exec(step);
+  } else {
+    Log("NEMU sdb only support 10 step!");
+  }
+  return 0;
+}
+
+static int cmd_info(char *args){
+  isa_reg_display();
+  return 0;
+}
+
+static int cmd_x(char *args){
+  int step;
+  paddr_t addr;
+  sscanf(args,"%d %x", &step, &addr);
+  if(addr < 0x80000000 || addr > 0x87ffffff) {
+    printf(ANSI_FMT("Out of mem bound!!!\n", ANSI_FG_RED));
+    return 0;
+  }
+  int i;
+  for(i = 0; i < step; i++) {
+    addr += sizeof(paddr_t);
+    printf(ANSI_FMT("%#010x: " ,ANSI_FG_BLUE),addr);
+    printf("%#010lx\n", paddr_read(addr, 4));
+  }
+  return 0;
+}
+
+static int cmd_p(char *args){
+  // if
+  // cpu_exec(args);
+  return 0;
+}
+
+static int cmd_w(char *args){
+  // if
+  // cpu_exec(args);
+  return 0;
+}
+
+static int cmd_d(char *args){
+  // if
+  // cpu_exec(args);
+  return 0;
 }
 
 static int cmd_help(char *args);
@@ -57,10 +111,16 @@ static int cmd_help(char *args);
 static struct {
   const char *name;
   const char *description;
-  int (*handler) (char *);
+  int (*handler) (char *);                          // pointer to function
 } cmd_table [] = {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
+  { "si","si", cmd_si},
+  { "i", "info", cmd_info},
+  { "x","x", cmd_x},
+  { "p","p", cmd_p},
+  { "w","w", cmd_w},
+  { "d","d", cmd_d},
   { "q", "Exit NEMU", cmd_q },
 
   /* TODO: Add more commands */
@@ -112,7 +172,7 @@ void sdb_mainloop() {
     /* treat the remaining string as the arguments,
      * which may need further parsing
      */
-    char *args = cmd + strlen(cmd) + 1;  //?????
+    char *args = cmd + strlen(cmd) + 1;  // args command + '\0'
     if (args >= str_end) {
       args = NULL;
     }
