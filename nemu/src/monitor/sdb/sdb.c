@@ -54,11 +54,17 @@ static int cmd_q(char *args) {
 }
 
 static int cmd_si(char *args){
+  int step;
   char *token = strtok(args, " ");
-  int step = atoi(token);
+  if(token == NULL) {
+    step = 1;
+  } else {
+    step = atoi(args);
+  }
+
   if(step == 0) {
     cpu_exec(1);
-  } else if(step >= 1 && step < 11) {
+  } else if(step > 0 && step < 11) {
     cpu_exec(step);
   } else {
     Log("NEMU sdb only support 10 step!");
