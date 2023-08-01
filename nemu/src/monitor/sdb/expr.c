@@ -28,20 +28,18 @@ static struct rule {
   const char *regex;
   int token_type;
 } rules[] = {
-
-  /* TODO: Add more rules.
-   * Pay attention to the precedence level of different rules.
-   */
-
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus    // ??? why //+?? /+?
   {"==", TK_EQ},        // equal
   {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
+  // {"[0-9]*", TK_NEM},   // number
   {"\\-", '-'},         // sub
   {"\\*", '*'},         // mul
   {"/", '/'},           // divide
   {"\\$", '$'},
   {"[0-9 | a-z | A-Z]*", TK_EXP}
+  // {"(", '('},
+  // {")", ')'}
 
 };
 
@@ -58,7 +56,7 @@ void init_regex() {
   int ret;
 
   for (i = 0; i < NR_REGEX; i ++) {
-    ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
+    ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);  // rules.regex --compile--> store re[] array
     if (ret != 0) {
       regerror(ret, &re[i], error_msg, 128);
       panic("regex compilation failed: %s\n%s", error_msg, rules[i].regex);
@@ -77,7 +75,8 @@ static int nr_token __attribute__((used))  = 0;
 static bool make_token(char *e) {
   int position = 0;
   int i;
-  regmatch_t pmatch;
+  // int j = 0;
+  regmatch_t pmatch;  // match charater
 
   nr_token = 0;
 
@@ -90,6 +89,8 @@ static bool make_token(char *e) {
 
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        // printf("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+            // i, rules[i].regex, position, substr_len, substr_start);
 
         position += substr_len;
 
@@ -99,6 +100,10 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
+          case TK_NEM: tokens[nr_token].type = rules[i].token_type; strncpy(tokens[nr_token].str, substr_start, substr_len); nr_token++; printf("NUM!\n"); break;
+          case '+': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("+\n"); break;
+          case '*': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("*\n"); break;
+          case '-': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
           default: TODO();
         }
 
@@ -115,15 +120,59 @@ static bool make_token(char *e) {
   return true;
 }
 
+int eval(int p,int q) {
+  int op, op_type, val1, val2;
+  if (p > q) {
+    // /* Bad expression */
+    printf("bad expr\n");
+    return 0;
+  }
+  else if (p == q) {
+    /* Single token.
+     * For now this token should be a number.
+     * Return the value of the number.
+     */
+    printf("Single token\n");
+    // int num = 
+    return atoi(tokens[p].str);
+
+  // }
+  // else if (check_parentheses(p, q) == true) {
+    /* The expression is surrounded by a matched pair of parentheses.
+     * If that is the case, just throw away the parentheses.
+     */
+    //TODO - check_parentheses
+    // return eval(p + 1, q - 1);
+  }
+  else {
+    op = (p+q)/2; // the position of 主运算符 in the token expression;
+    val1 = eval(p, op - 1);
+    val2 = eval(op + 1, q);
+    op_type = tokens[op].type;
+
+    switch (op_type) {
+      case '+': return val1 + val2;
+      case '-': /* ... */
+      case '*': /* ... */
+      case '/': /* ... */
+      default: assert(0);
+    }
+  }
+}
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     *success = false;
     return 0;
   }
+  return eval(0, nr_token-1);
 
   /* TODO: Insert codes to evaluate the expression. */
-  TODO();
+  // TODO();
+  // int i;
+  // for(i = 0; i < 32; i++) {
+    // printf("%d, %s\n", tokens[i].type, tokens[i].str);
+  // }
 
-  return 0;
+  // return 0;
 }
