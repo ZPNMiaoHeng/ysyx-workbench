@@ -96,7 +96,11 @@ static int cmd_x(char *args){
 static int cmd_p(char *args){
   bool *success = NULL;
   int result = expr(args, success);
-  printf("Result is %d\n", result);
+  if(success == false) {
+    printf("bad expr, please retry!\n");
+  } else{
+    printf("Result is %d\n", result);
+  }
   return 0;
 }
 

@@ -75,7 +75,6 @@ static int nr_token __attribute__((used))  = 0;
 static bool make_token(char *e) {
   int position = 0;
   int i;
-  // int j = 0;
   regmatch_t pmatch;  // match charater
 
   nr_token = 0;
@@ -87,10 +86,13 @@ static bool make_token(char *e) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
+        if(substr_len > 31) {
+          printf("Input str is too long, Out of Array!!!\n");
+          return false;
+        }
+
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
-        // printf("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            // i, rules[i].regex, position, substr_len, substr_start);
 
         position += substr_len;
 
@@ -123,17 +125,11 @@ static bool make_token(char *e) {
 int eval(int p,int q) {
   int op, op_type, val1, val2;
   if (p > q) {
-    // /* Bad expression */
     printf("bad expr\n");
     return 0;
   }
   else if (p == q) {
-    /* Single token.
-     * For now this token should be a number.
-     * Return the value of the number.
-     */
     printf("Single token\n");
-    // int num = 
     return atoi(tokens[p].str);
 
   // }
@@ -151,10 +147,10 @@ int eval(int p,int q) {
     op_type = tokens[op].type;
 
     switch (op_type) {
-      case '+': return val1 + val2;
-      case '-': /* ... */
-      case '*': /* ... */
-      case '/': /* ... */
+      case '+': return val1 + val2; break;
+      case '-': return val1 + val2; break;
+      case '*': return val1 + val2; break;
+      case '/': return val1 + val2; break;
       default: assert(0);
     }
   }
@@ -165,6 +161,7 @@ word_t expr(char *e, bool *success) {
     *success = false;
     return 0;
   }
+    *success = true;
   return eval(0, nr_token-1);
 
   /* TODO: Insert codes to evaluate the expression. */
