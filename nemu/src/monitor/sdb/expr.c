@@ -31,15 +31,17 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus    // ??? why //+?? /+?
   {"==", TK_EQ},        // equal
+  {"\\(", '('},
+  {"\\)", ')'},
   {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
   // {"[0-9]*", TK_NEM},   // number
   {"\\-", '-'},         // sub
   {"\\*", '*'},         // mul
   {"/", '/'},           // divide
   {"\\$", '$'},
-  {"[0-9 | a-z | A-Z]*", TK_EXP}
-  // {"(", '('},
-  // {")", ')'}
+  {"[0-9 | a-z | A-Z]*", TK_EXP},
+  // {"\\(", '('},
+  // {"\\)", ')'}
 
 };
 
@@ -106,6 +108,8 @@ static bool make_token(char *e) {
           case '+': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("+\n"); break;
           case '*': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("*\n"); break;
           case '-': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
+          case '(': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
+          case ')': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
           default: TODO();
         }
 
@@ -158,10 +162,13 @@ int eval(int p,int q) {
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
-    *success = false;
+    // *success = false;
+    success = (bool *)false;
+
     return 0;
   }
-    *success = true;
+    // *success = true;
+    success = (bool *)true;
   return eval(0, nr_token-1);
 
   /* TODO: Insert codes to evaluate the expression. */
