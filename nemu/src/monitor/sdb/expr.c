@@ -33,13 +33,13 @@ static struct rule {
   {"==", TK_EQ},        // equal
   {"\\(", '('},
   {"\\)", ')'},
-  {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
-  // {"[0-9]*", TK_NEM},   // number
-  {"\\-", '-'},         // sub
   {"\\*", '*'},         // mul
+  {"\\-", '-'},         // sub
   {"/", '/'},           // divide
   {"\\$", '$'},
-  {"[0-9 | a-z | A-Z]*", TK_EXP},
+  {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
+  {"[0-9 | a-z | A-Z]*", TK_EXP}
+  // {"[0-9]*", TK_NEM},   // number
   // {"\\(", '('},
   // {"\\)", ')'}
 
@@ -88,8 +88,9 @@ static bool make_token(char *e) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        if(substr_len > 31) {
+        if(substr_len > 8) {
           printf("Input str is too long, Out of Array!!!\n");
+          // TODO - Only use first str
           return false;
         }
 
@@ -125,6 +126,9 @@ static bool make_token(char *e) {
 
   return true;
 }
+// TODO - check_parentheses();
+// TODO - main_operation();
+
 
 int eval(int p,int q) {
   int op, op_type, val1, val2;
@@ -164,19 +168,16 @@ word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
     // *success = false;
     success = (bool *)false;
-
     return 0;
   }
-    // *success = true;
-    success = (bool *)true;
-  return eval(0, nr_token-1);
+    // success = (bool *)true;
+  // return eval(0, nr_token-1);
 
   /* TODO: Insert codes to evaluate the expression. */
-  // TODO();
   // int i;
   // for(i = 0; i < 32; i++) {
     // printf("%d, %s\n", tokens[i].type, tokens[i].str);
   // }
 
-  // return 0;
+  return 0;
 }
