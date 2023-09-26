@@ -105,12 +105,14 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          case TK_NEM: tokens[nr_token].type = rules[i].token_type; strncpy(tokens[nr_token].str, substr_start, substr_len); nr_token++; printf("NUM!\n"); break;
-          case '+': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("+\n"); break;
-          case '*': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("*\n"); break;
-          case '-': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
-          case '(': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
-          case ')': tokens[nr_token].type = rules[i].token_type; nr_token++; printf("-\n"); break;
+          case TK_NEM: tokens[nr_token].type = rules[i].token_type; strncpy(tokens[nr_token].str, substr_start, substr_len);
+                                                                    nr_token++;/* printf("NUM!\n");*/ break;
+          case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("+\n");   */ break;
+          case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
+          case '-':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
+          case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
+          case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
+          case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
           default: TODO();
         }
 
@@ -126,39 +128,63 @@ static bool make_token(char *e) {
 
   return true;
 }
-// TODO - check_parentheses();
-// TODO - main_operation();
 
+bool check_parentheses(int p, int q) {
+  Log("check_pa");
+  if((tokens[p].type == '(') & (tokens[q].type == ')'))
+    return true;
+  return false;
+
+  // TODO: bad expr (4 + 3)) * ((2 - 1)
+  // TODO: special expr (4 + 3) * (2 - 1)
+}
+
+
+// TODO - main_operation();
+int main_operation(int p, int q) {
+  int mainOpIndex, mainOpType;
+  for(mainOpIndex = 0, mainOpType = 0; p < q; p++) {
+    if((tokens[p].type == '+') | (tokens[p].type == '-') |(tokens[p].type == '*') |(tokens[p].type == '/')) {
+      if((mainOpType == 0) | (((mainOpType == '*') | (mainOpType == '/')) & ((tokens[p].type == '+') | (tokens[p].type == '-'))) ) {             // init and op update
+        mainOpIndex = p;
+        mainOpType = tokens[p].type;
+      // } else if(mainOpType == tokens[p].type) {  // same op
+      } else if((((mainOpType == '+') | (mainOpType == '-')) & ((tokens[p].type == '+') | (tokens[p].type == '-')))) {  // same op
+        mainOpIndex = p;
+      } 
+    } 
+  }
+
+  Log("Main op is %d = %d", mainOpIndex, tokens[mainOpIndex].type);
+  return mainOpIndex;
+}
 
 int eval(int p,int q) {
   int op, op_type, val1, val2;
   if (p > q) {
-    printf("bad expr\n");
+    Log("bad expr\n");
     return 0;
   }
   else if (p == q) {
     printf("Single token\n");
     return atoi(tokens[p].str);
 
-  // }
-  // else if (check_parentheses(p, q) == true) {
-    /* The expression is surrounded by a matched pair of parentheses.
-     * If that is the case, just throw away the parentheses.
-     */
-    //TODO - check_parentheses
-    // return eval(p + 1, q - 1);
+  }
+  else if (check_parentheses(p, q) == true) {
+    return eval(p + 1, q - 1);
   }
   else {
-    op = (p+q)/2; // the position of 主运算符 in the token expression;
+    Log("Mul tokens p=%d, q=%d", p ,q);
+    op = main_operation(p, q);
     val1 = eval(p, op - 1);
     val2 = eval(op + 1, q);
     op_type = tokens[op].type;
 
     switch (op_type) {
       case '+': return val1 + val2; break;
-      case '-': return val1 + val2; break;
-      case '*': return val1 + val2; break;
-      case '/': return val1 + val2; break;
+      case '-': return val1 - val2; break;
+      case '*': return val1 * val2; break;
+      case '/': return val1 / val2; break;
       default: assert(0);
     }
   }
@@ -166,18 +192,9 @@ int eval(int p,int q) {
 
 word_t expr(char *e, bool *success) {
   if (!make_token(e)) {
-    // *success = false;
-    success = (bool *)false;
+    success = (bool *)false;   // false is 1 of int, force to pointer of pointer. 
     return 0;
   }
-    // success = (bool *)true;
-  // return eval(0, nr_token-1);
-
-  /* TODO: Insert codes to evaluate the expression. */
-  // int i;
-  // for(i = 0; i < 32; i++) {
-    // printf("%d, %s\n", tokens[i].type, tokens[i].str);
-  // }
-
-  return 0;
+  success = (bool *)true;
+  return eval(0, nr_token-1);
 }
