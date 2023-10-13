@@ -145,10 +145,10 @@ int main_operation(int p, int q) {
   int mainOpIndex, mainOpType;
   for(mainOpIndex = 0, mainOpType = 0; p < q; p++) {
     if((tokens[p].type == '+') | (tokens[p].type == '-') |(tokens[p].type == '*') |(tokens[p].type == '/')) {
-      if((mainOpType == 0) | (((mainOpType == '*') | (mainOpType == '/')) & ((tokens[p].type == '+') | (tokens[p].type == '-'))) ) {             // init and op update
+      // if((mainOpType == 0) | (((mainOpType == '*') | (mainOpType == '/')) & ((tokens[p].type == '+') | (tokens[p].type == '-'))) ) {             // init and op update
+      if((mainOpIndex == 0) | ((mainOpType == '*') | (mainOpType == '/')) ) {             // Init(当检测到操作运算符并且保存下表位置为0) or op update
         mainOpIndex = p;
         mainOpType = tokens[p].type;
-      // } else if(mainOpType == tokens[p].type) {  // same op
       } else if((((mainOpType == '+') | (mainOpType == '-')) & ((tokens[p].type == '+') | (tokens[p].type == '-')))) {  // same op
         mainOpIndex = p;
       } 
@@ -162,11 +162,11 @@ int main_operation(int p, int q) {
 int eval(int p,int q) {
   int op, op_type, val1, val2;
   if (p > q) {
-    Log("bad expr\n");
+    Log("bad expr");
     return 0;
   }
   else if (p == q) {
-    printf("Single token\n");
+    Log("Single token");
     return atoi(tokens[p].str);
 
   }
