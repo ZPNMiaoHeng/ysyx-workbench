@@ -88,7 +88,7 @@ static int cmd_x(char *args){
   for(i = 0; i < step; i++) {
     addr += sizeof(paddr_t);
     printf(ANSI_FMT("%#010x: " ,ANSI_FG_BLUE),addr);
-    printf("%#010lx\n", paddr_read(addr, 4));
+    printf("%#010x\n", paddr_read(addr, 4));
   }
   return 0;
 }
