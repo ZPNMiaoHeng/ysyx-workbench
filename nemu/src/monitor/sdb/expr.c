@@ -94,8 +94,8 @@ static bool make_token(char *e) {
           return false;
         }
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+            // i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
         position += substr_len;
 
@@ -130,22 +130,26 @@ static bool make_token(char *e) {
 }
 
 bool check_parentheses(int p, int q) {
-  Log("check_pa");
+  // Log("check_pa");
   if((tokens[p].type == '(') & (tokens[q].type == ')'))
     return true;
   return false;
-
-  // TODO: bad expr (4 + 3)) * ((2 - 1)
-  // TODO: special expr (4 + 3) * (2 - 1)
 }
 
 
 // TODO - main_operation();
 int main_operation(int p, int q) {
   int mainOpIndex, mainOpType;
+  int parentheses = 0;
   for(mainOpIndex = 0, mainOpType = 0; p < q; p++) {
-    if((tokens[p].type == '+') | (tokens[p].type == '-') |(tokens[p].type == '*') |(tokens[p].type == '/')) {
-      // if((mainOpType == 0) | (((mainOpType == '*') | (mainOpType == '/')) & ((tokens[p].type == '+') | (tokens[p].type == '-'))) ) {             // init and op update
+    if(tokens[p].type == '(') {
+      parentheses++;
+    } else if (tokens[p].type == ')') {
+      parentheses--;
+    }
+  Assert(parentheses >= 0, "Parentheses is error,only ) !");
+    if(((tokens[p].type == '+') |(tokens[p].type == '-') |(tokens[p].type == '*') |(tokens[p].type == '/')) & (parentheses == 0)) {
+      
       if((mainOpIndex == 0) | ((mainOpType == '*') | (mainOpType == '/')) ) {             // Init(当检测到操作运算符并且保存下表位置为0) or op update
         mainOpIndex = p;
         mainOpType = tokens[p].type;
@@ -155,18 +159,18 @@ int main_operation(int p, int q) {
     } 
   }
 
-  Log("Main op is %d = %d", mainOpIndex, tokens[mainOpIndex].type);
+  // Log("Main op is %d = %d", mainOpIndex, tokens[mainOpIndex].type);
   return mainOpIndex;
 }
 
 int eval(int p,int q) {
   int op, op_type, val1, val2;
   if (p > q) {
-    Log("bad expr");
+    // Log("bad expr");
     return 0;
   }
   else if (p == q) {
-    Log("Single token");
+    // Log("Single token");
     return atoi(tokens[p].str);
 
   }
@@ -174,7 +178,7 @@ int eval(int p,int q) {
     return eval(p + 1, q - 1);
   }
   else {
-    Log("Mul tokens p=%d, q=%d", p ,q);
+    // Log("Mul tokens p=%d, q=%d", p ,q);
     op = main_operation(p, q);
     val1 = eval(p, op - 1);
     val2 = eval(op + 1, q);
