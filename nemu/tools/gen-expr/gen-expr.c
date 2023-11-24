@@ -30,9 +30,46 @@ static char *code_format =
 "  printf(\"%%u\", result); "
 "  return 0; "
 "}";
+static char *pa;
+int divide_zero;
 
-static void gen_rand_expr() {
-  buf[0] = '\0';
+uint32_t choose(uint32_t n) {
+  return rand() % n;
+}
+
+// static int gen_rand_op() {
+uint32_t gen_rand_op() {
+  int op = 0, rand = 0;
+  switch (choose(4)) {
+    case 0: op = '+'; rand=3; break;
+    case 1: op = '-'; rand=3; break;
+    case 2: op = '*'; rand=3; break;
+    default: op = '/'; rand = 1; break;
+  }
+  sprintf(pa++, "%c", op);
+
+  return rand;
+}
+
+static void gen_num(int divide_zero) {
+  int num= rand() % 100;
+  if((divide_zero == 1) && (num == 0)) {   // divide zero detect
+    num = rand() % 100;
+  }
+  sprintf(pa++, "%d", num);
+}
+
+static void gen(int n) {
+  sprintf(pa++, "%c", n);
+}
+
+static void gen_rand_expr(int i) {
+
+  switch (choose(i)) {
+    case 0: gen_num(divide_zero); break;
+    case 1: gen('('); gen_rand_expr(3); gen(')'); break;
+    default: gen_rand_expr(3); divide_zero = gen_rand_op(); gen_rand_expr(divide_zero); break;  // 当检测到除法时，后续生成数字
+  }
 }
 
 int main(int argc, char *argv[]) {
@@ -44,7 +81,8 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
-    gen_rand_expr();
+    pa = buf;
+    gen_rand_expr(3);
 
     sprintf(code_buf, code_format, buf);
 
