@@ -162,6 +162,10 @@ void sdb_set_batch_mode() {
   is_batch_mode = true;
 }
 
+uint32_t sdb_test_expr_p(char *args) {
+  return cmd_p(args);
+}
+
 void sdb_mainloop() {
   if (is_batch_mode) {
     cmd_c(NULL);

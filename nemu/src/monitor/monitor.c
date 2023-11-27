@@ -32,19 +32,52 @@ static void welcome() {
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
-  // Log("Exercise: Please remove me in the source code and compile NEMU again.");
-  // assert(0);
 }
 
 #ifndef CONFIG_TARGET_AM
 #include <getopt.h>
 
 void sdb_set_batch_mode();
+uint32_t sdb_test_expr_p(char *args);
+word_t expr(char *e, bool *success);
+
 
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
+static char *expr_file = NULL;
 static int difftest_port = 1234;
+
+static long test_expr() {
+  if(expr_file == NULL) {
+    Log("No test expr.");
+    return 0;
+  }
+
+  char buf[255];
+  char result[255];
+  // int result_ret, expr_result;
+  int result_ret, buf_ret, expr_result;
+  FILE *fp = fopen(expr_file, "r");
+  Assert(fp, "Can not open '%s'", expr_file);
+  
+  while( (result_ret = fscanf(fp, "%s", result)) != 0) {
+    buf_ret = fscanf(fp, "%s", buf);
+    expr_result = sdb_test_expr_p(buf);
+    printf("Open test expr_file, %s, %s, %d, %d\n", result, buf, result_ret, buf_ret);
+    Assert(result_ret != expr_result, "expr error result");
+  }
+
+  // int result_ret = fscanf(fp, "%s", result);
+  // int buf_ret = fscanf(fp, "%s", buf);
+  // int expr_result = sdb_test_expr_p(buf);
+  // Assert(result_ret != expr_result, "expr error result");
+  // printf("Open test expr_file, %s, %s, %d, %d\n", result, buf, result_ret, buf_ret);
+  
+  fclose(fp);
+
+  return 0;
+}
 
 static long load_img() {
   if (img_file == NULL) {
@@ -74,16 +107,18 @@ static int parse_args(int argc, char *argv[]) {
     {"log"      , required_argument, NULL, 'l'},
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
+    {"expr"     , required_argument, NULL, 'e'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
+      case 'e': expr_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -91,6 +126,7 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-l,--log=FILE           output log to FILE\n");
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
+        printf("\t-e,--expr=FILE          test expr\n");
         printf("\n");
         exit(0);
     }
@@ -127,6 +163,9 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Initialize the simple debugger. */
   init_sdb();
+
+    /* Test expr */
+  test_expr();
 
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(
