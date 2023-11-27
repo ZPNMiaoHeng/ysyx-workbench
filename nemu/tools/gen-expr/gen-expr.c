@@ -20,6 +20,11 @@
 #include <assert.h>
 #include <string.h>
 
+//*------------------------------
+// TODO：Bug， 数据超出类型范围
+// warning: integer overflow in expression of type ‘int’ results in ‘-2138594836’ [-Woverflow]
+//*------------------------------
+
 // this should be enough
 static char buf[65536] = {};
 static char code_buf[65536 + 128] = {}; // a little larger than `buf`
@@ -54,7 +59,7 @@ uint32_t gen_rand_op() {
 static void gen_num(int divide_zero) {
   int num= rand() % 100;
   if((divide_zero == 1) && (num == 0)) {   // divide zero detect
-    num = rand() % 100;
+    num = rand() % 100 + 1;
   }
   sprintf(pa++, "%d", num);
 }
