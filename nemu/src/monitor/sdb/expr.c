@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_NEM, TK_DIVIDE, TK_EXP, 
+  TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_NEM, TK_DIVIDE, TK_EXP,
   TK_NEGATIVE_NUBER,
   TK_REG,            // 访问寄存器
   TK_LOGIC_AND,      // 逻辑与
@@ -42,15 +42,9 @@ static struct rule {
   {"\\-", '-'},         // sub
   {"/", '/'},           // divide
   {"\\$", TK_REG},
-  // {"\\-", TK_NEGATIVE_NUBER},
   // {"&&", TK_LOGIC_AND},
-  // {"\\*", TK_POINTER},
   {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
   {"[0-9 | a-z | A-Z]*", TK_EXP}
-  // {"[0-9]*", TK_NEM},   // number
-  // {"\\(", '('},
-  // {"\\)", ')'}
-
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -117,8 +111,23 @@ static bool make_token(char *e) {
                         memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str)); 
                         strncpy(tokens[nr_token].str, substr_start, substr_len);
                                                                     nr_token++;/* printf("NUM!\n");*/ break;
+          case TK_EXP:
+            TODO(); 
+            break;
           case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("+\n");   */ break;
-          case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
+          // case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
+          case '*':    
+            if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
+              tokens[nr_token].type = TK_POINTER;
+              printf("Pointer !\n");
+            } else {
+              tokens[nr_token].type = rules[i].token_type;
+              printf("Mul\n");
+            }
+           nr_token++;
+           break;
+          // tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
+
           // case '-':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
           case '-':    
             if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
@@ -189,16 +198,14 @@ int main_operation(int p, int q) {
   return mainOpIndex;
 }
 
+bool *success = (bool *)true;
 int eval(int p,int q) {
   int op, op_type, val1, val2;
   if (p > q) {
-    // Log("bad expr");
     return 0;
   }
   else if (p == q) {
-    // Log("Single token");
     return atoi(tokens[p].str);
-
   }
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1);
@@ -206,8 +213,13 @@ int eval(int p,int q) {
   else if(tokens[p].type == TK_NEGATIVE_NUBER) {
     return -eval(p +1, q);
   }
+  else if(tokens[p].type == TK_POINTER) {
+    return isa_reg_str2val(tokens[p+1].str, success);  // 只考虑后跟寄存器
+    // return isa_reg_str2val(eval(p+1, q), success);
+    // return isa_reg_str2val(tokens[p])
+    // return eval(p+1, q);
+  }
   else {
-    // Log("Mul tokens p=%d, q=%d", p ,q);
     op = main_operation(p, q);
     val1 = eval(p, op - 1);
     val2 = eval(op + 1, q);

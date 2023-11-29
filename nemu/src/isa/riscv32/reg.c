@@ -24,7 +24,7 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-  int i;//, k;
+  int i;
   for(i = 0; i < 32; i++) {
     printf("x%d\t%s\t%#x", i+1, regs[i], cpu.gpr[i]);
     printf("\n");
@@ -32,5 +32,15 @@ void isa_reg_display() {
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
+  int i = 0;
+  for(i=0; i<32; i++) {
+    if(strcmp(regs[i], s) == 0) {
+      success = (bool *) true;
+      return cpu.gpr[i];
+    }
+  }
+
+  success = (bool *) false;
+  Assert(i < 32, "Reg name %s is error,please check it!", s);
   return 0;
 }
