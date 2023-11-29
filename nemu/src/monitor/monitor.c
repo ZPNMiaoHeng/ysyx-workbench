@@ -53,8 +53,8 @@ static long test_expr() {
     return 0;
   }
 
-  char buf[255];
-  char result[255];
+  char buf[1024];
+  char result[1024];
   bool *success = (bool *)true;
   int result_ret, buf_ret, expr_result;
   FILE *fp = fopen(expr_file, "r");
