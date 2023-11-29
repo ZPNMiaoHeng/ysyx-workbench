@@ -121,12 +121,12 @@ static bool make_token(char *e) {
           case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
           // case '-':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
           case '-':    
-            if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') { // TODO:ADD TK_NEGATIVE_NUMBER: --1
+            if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
               tokens[nr_token].type = TK_NEGATIVE_NUBER;
-              printf("Negetive number!\n");
+              // printf("Negetive number!\n");
             } else {
               tokens[nr_token].type = rules[i].token_type;
-              printf("jian fa\n");
+              // printf("jian fa\n");
             }
            nr_token++;
            break;
