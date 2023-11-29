@@ -21,7 +21,11 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_NEM, TK_DIVIDE, TK_EXP,
+  TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_NEM, TK_DIVIDE, TK_EXP, 
+  TK_NEGATIVE_NUBER,
+  TK_REG,            // 访问寄存器
+  TK_LOGIC_AND,      // 逻辑与
+  TK_POINTER         // 指针解引用
 };
 
 static struct rule {
@@ -31,12 +35,16 @@ static struct rule {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},         // plus    // ??? why //+?? /+?
   {"==", TK_EQ},        // equal
+  {"!=", TK_NEQ},
   {"\\(", '('},
   {"\\)", ')'},
   {"\\*", '*'},         // mul
   {"\\-", '-'},         // sub
   {"/", '/'},           // divide
-  {"\\$", '$'},
+  {"\\$", TK_REG},
+  // {"\\-", TK_NEGATIVE_NUBER},
+  // {"&&", TK_LOGIC_AND},
+  // {"\\*", TK_POINTER},
   {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
   {"[0-9 | a-z | A-Z]*", TK_EXP}
   // {"[0-9]*", TK_NEM},   // number
@@ -111,7 +119,17 @@ static bool make_token(char *e) {
                                                                     nr_token++;/* printf("NUM!\n");*/ break;
           case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("+\n");   */ break;
           case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
-          case '-':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
+          // case '-':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
+          case '-':    
+            if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') { // TODO:ADD TK_NEGATIVE_NUMBER: --1
+              tokens[nr_token].type = TK_NEGATIVE_NUBER;
+              printf("Negetive number!\n");
+            } else {
+              tokens[nr_token].type = rules[i].token_type;
+              printf("jian fa\n");
+            }
+           nr_token++;
+           break;
           case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
@@ -147,8 +165,6 @@ bool check_parentheses(int p, int q) {
   return (i == q);
 }
 
-
-// TODO - main_operation();
 int main_operation(int p, int q) {
   int mainOpIndex, mainOpType;
   int parentheses = 0;
@@ -170,7 +186,6 @@ int main_operation(int p, int q) {
     } 
   }
 
-  // Log("Main op is %d = %d", mainOpIndex, tokens[mainOpIndex].type);
   return mainOpIndex;
 }
 
@@ -187,6 +202,9 @@ int eval(int p,int q) {
   }
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1);
+  }
+  else if(tokens[p].type == TK_NEGATIVE_NUBER) {
+    return -eval(p +1, q);
   }
   else {
     // Log("Mul tokens p=%d, q=%d", p ,q);
