@@ -38,7 +38,6 @@ static void welcome() {
 #include <getopt.h>
 
 void sdb_set_batch_mode();
-uint32_t sdb_test_expr_p(char *args);
 word_t expr(char *e, bool *success);
 
 
@@ -56,23 +55,22 @@ static long test_expr() {
 
   char buf[255];
   char result[255];
-  // int result_ret, expr_result;
+  bool *success = (bool *)true;
   int result_ret, buf_ret, expr_result;
   FILE *fp = fopen(expr_file, "r");
   Assert(fp, "Can not open '%s'", expr_file);
   
-  while( (result_ret = fscanf(fp, "%s", result)) != 0) {
+  while( (result_ret = fscanf(fp, "%s", result)) == 1) {
     buf_ret = fscanf(fp, "%s", buf);
-    expr_result = sdb_test_expr_p(buf);
     printf("Open test expr_file, %s, %s, %d, %d\n", result, buf, result_ret, buf_ret);
-    Assert(result_ret != expr_result, "expr error result");
-  }
+    
+    expr_result = expr(buf, success);
 
-  // int result_ret = fscanf(fp, "%s", result);
-  // int buf_ret = fscanf(fp, "%s", buf);
-  // int expr_result = sdb_test_expr_p(buf);
-  // Assert(result_ret != expr_result, "expr error result");
-  // printf("Open test expr_file, %s, %s, %d, %d\n", result, buf, result_ret, buf_ret);
+    // printf("%s\t%d\n", result, expr_result);
+    printf("%d\t%d\n", atoi(result), expr_result);
+    // Assert(atoi(result) != expr_result, "expr error result");
+    assert(atoi(result) == expr_result);
+  }
   
   fclose(fp);
 

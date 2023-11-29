@@ -71,7 +71,7 @@ typedef struct token {
   char str[32];
 } Token;
 
-static Token tokens[32] __attribute__((used)) = {};
+static Token tokens[1024] __attribute__((used)) = {};
 static int nr_token __attribute__((used))  = 0;
 
 static bool make_token(char *e) {
@@ -105,7 +105,9 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          case TK_NEM: tokens[nr_token].type = rules[i].token_type; strncpy(tokens[nr_token].str, substr_start, substr_len);
+          case TK_NEM: tokens[nr_token].type = rules[i].token_type; 
+                        memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str)); 
+                        strncpy(tokens[nr_token].str, substr_start, substr_len);
                                                                     nr_token++;/* printf("NUM!\n");*/ break;
           case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("+\n");   */ break;
           case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
@@ -147,7 +149,7 @@ int main_operation(int p, int q) {
     } else if (tokens[p].type == ')') {
       parentheses--;
     }
-  Assert(parentheses >= 0, "Parentheses is error,only ) !");
+  // Assert(parentheses >= 0, "Parentheses is error,only ) !");
     if(((tokens[p].type == '+') |(tokens[p].type == '-') |(tokens[p].type == '*') |(tokens[p].type == '/')) & (parentheses == 0)) {
       
       if((mainOpIndex == 0) | ((mainOpType == '*') | (mainOpType == '/')) ) {             // Init(当检测到操作运算符并且保存下表位置为0) or op update

@@ -57,7 +57,7 @@ uint32_t gen_rand_op() {
 }
 
 static void gen_num(int divide_zero) {
-  int num= rand() % 100;
+  uint32_t num= rand() % 100;
   if((divide_zero == 1) && (num == 0)) {   // divide zero detect
     num = rand() % 100 + 1;
   }
@@ -106,7 +106,8 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     pclose(fp);
 
-    printf("%u %s\n", result, buf);
+    // printf("%u %s\n", result, buf);
+    printf("%d %s\n", result, buf);
   }
   return 0;
 }
