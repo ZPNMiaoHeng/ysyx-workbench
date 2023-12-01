@@ -21,7 +21,8 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_NEM, TK_DIVIDE, TK_EXP,
+  TK_NOTYPE = 256, TK_EQ, TK_NEQ, 
+  TK_DIVIDE, TK_EXP,
   TK_NEGATIVE_NUBER,
   TK_REG,            // 访问寄存器
   TK_LOGIC_AND,      // 逻辑与
@@ -43,7 +44,6 @@ static struct rule {
   {"/", '/'},           // divide
   {"\\$", TK_REG},
   // {"&&", TK_LOGIC_AND},
-  {"[0]?[xhob]?[0-9]*", TK_NEM},   // number
   {"[0-9 | a-z | A-Z]*", TK_EXP}
 };
 
@@ -86,7 +86,7 @@ static bool make_token(char *e) {
   while (e[position] != '\0') {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
-      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
+      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {   // FIXME - *ra中r识别为数字；
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
@@ -96,9 +96,6 @@ static bool make_token(char *e) {
           return false;
         }
 
-        // Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
-            // i, rules[i].regex, position, substr_len, substr_len, substr_start);
-
         position += substr_len;
 
         /* TODO: Now a new token is recognized with rules[i]. Add codes
@@ -107,15 +104,14 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          case TK_NEM: tokens[nr_token].type = rules[i].token_type; 
-                        memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str)); 
-                        strncpy(tokens[nr_token].str, substr_start, substr_len);
-                                                                    nr_token++;/* printf("NUM!\n");*/ break;
-          case TK_EXP:
-            TODO(); 
-            break;
-          case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("+\n");   */ break;
-          // case '*':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
+          case TK_EXP:  
+            tokens[nr_token].type = rules[i].token_type; 
+            memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str)); 
+            strncpy(tokens[nr_token].str, substr_start, substr_len);
+            nr_token++; break;
+          
+          case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          
           case '*':    
             if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
               tokens[nr_token].type = TK_POINTER;
@@ -126,22 +122,17 @@ static bool make_token(char *e) {
             }
            nr_token++;
            break;
-          // tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("*\n");   */ break;
-
-          // case '-':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
           case '-':    
             if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
               tokens[nr_token].type = TK_NEGATIVE_NUBER;
-              // printf("Negetive number!\n");
             } else {
               tokens[nr_token].type = rules[i].token_type;
-              // printf("jian fa\n");
             }
            nr_token++;
            break;
-          case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
-          case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
-          case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++;/* printf("-\n");   */ break;
+          case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           default: TODO();
         }
 
@@ -214,10 +205,8 @@ int eval(int p,int q) {
     return -eval(p +1, q);
   }
   else if(tokens[p].type == TK_POINTER) {
+    // printf("%#x\n", isa_reg_str2val(tokens[p+1].str, success));
     return isa_reg_str2val(tokens[p+1].str, success);  // 只考虑后跟寄存器
-    // return isa_reg_str2val(eval(p+1, q), success);
-    // return isa_reg_str2val(tokens[p])
-    // return eval(p+1, q);
   }
   else {
     op = main_operation(p, q);
