@@ -26,6 +26,7 @@ enum {
   TK_NEGATIVE_NUBER,
   TK_REG,            // 访问寄存器
   TK_LOGIC_AND,      // 逻辑与
+  TK_LOGIC_OR,      // 逻辑与
   TK_POINTER         // 指针解引用
 };
 
@@ -37,14 +38,18 @@ static struct rule {
   {"\\+", '+'},         // plus    // ??? why //+?? /+?
   {"==", TK_EQ},        // equal
   {"!=", TK_NEQ},
-  {"&&", TK_LOGIC_AND},
   {"\\(", '('},
   {"\\)", ')'},
   {"\\*", '*'},         // mul
   {"\\-", '-'},         // sub
   {"/", '/'},           // divide
   {"\\$", TK_REG},
-  {"[0-9 | a-z | A-Z]*", TK_EXP}
+  {"\\&", '&'},
+  {"\\|", '|'},
+  {"\\^", '^'},
+  {"[0-9 | a-z | A-Z]*", TK_EXP},
+  {"\\&&", TK_LOGIC_AND},
+  {"\\||", TK_LOGIC_OR},
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -86,10 +91,11 @@ static bool make_token(char *e) {
   while (e[position] != '\0') {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
-      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {   // FIXME - *ra中r识别为数字；
+      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
+        // Assert(substr_len==0,);
         if(substr_len > 8) {
           printf("Input str is too long, Out of Array!!!\n");
           // TODO - Only use first str
@@ -112,7 +118,7 @@ static bool make_token(char *e) {
           
           case '+':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           
-          case '*':    
+          case '*':
             if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
               tokens[nr_token].type = TK_POINTER;
               // printf("Pointer !\n");
@@ -140,7 +146,21 @@ static bool make_token(char *e) {
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case TK_EQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case TK_NEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
-          case TK_LOGIC_AND:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case '&': 
+            if(tokens[nr_token-1].type != '&') {
+              tokens[nr_token].type = rules[i].token_type; nr_token++;
+            } else {
+              tokens[nr_token-1].type = TK_LOGIC_AND;
+            } 
+            break;
+          case '|':
+            if(tokens[nr_token-1].type != '|') {
+              tokens[nr_token].type = rules[i].token_type; nr_token++;
+            } else {
+              tokens[nr_token-1].type = TK_LOGIC_OR;              
+            }
+            break;
+          case '^': tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           default: TODO();
         }
 
@@ -189,6 +209,11 @@ int main_operation(int p, int q) {
     case '-': op_priority = 4; break;
     case TK_EQ:
     case TK_NEQ: op_priority = 7; break;
+    case '&': op_priority = 8; break;
+    case '^': op_priority = 9; break;
+    case '|': op_priority = 10; break;
+    case TK_LOGIC_AND: op_priority = 11; break;
+    case TK_LOGIC_OR: op_priority = 12; break;
     
     default: op_priority = 0; break;
     }
@@ -216,10 +241,6 @@ int eval(int p,int q) {
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1);
   }
-  // else if(tokens[p].type == TK_POINTER) {
-  //   // printf("%#x\n", isa_reg_str2val(tokens[p+1].str, success));
-  //   return isa_reg_str2val(tokens[p+1].str, success);  // 只考虑后跟寄存器
-  // }
 
   else {
     op = main_operation(p, q);
@@ -238,6 +259,10 @@ int eval(int p,int q) {
       case TK_EQ: return val1 == val2; break;
       case TK_NEQ: return val1 != val2; break;
       case TK_LOGIC_AND: return val1 && val2; break;
+      case TK_LOGIC_OR: return val1 || val2; break;
+      case '&': return val1 & val2; break;
+      case '^': return val1 ^ val2; break;
+      case '|': return val1 | val2; break;
       default: assert(0);
     }
   }
