@@ -37,13 +37,13 @@ static struct rule {
   {"\\+", '+'},         // plus    // ??? why //+?? /+?
   {"==", TK_EQ},        // equal
   {"!=", TK_NEQ},
+  {"&&", TK_LOGIC_AND},
   {"\\(", '('},
   {"\\)", ')'},
   {"\\*", '*'},         // mul
   {"\\-", '-'},         // sub
   {"/", '/'},           // divide
   {"\\$", TK_REG},
-  // {"&&", TK_LOGIC_AND},
   {"[0-9 | a-z | A-Z]*", TK_EXP}
 };
 
@@ -104,7 +104,7 @@ static bool make_token(char *e) {
          */
 
         switch (rules[i].token_type) {
-          case TK_EXP:  
+          case TK_EXP:                                                               //* 识别数字/字符
             tokens[nr_token].type = rules[i].token_type; 
             memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str)); 
             strncpy(tokens[nr_token].str, substr_start, substr_len);
@@ -115,24 +115,32 @@ static bool make_token(char *e) {
           case '*':    
             if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
               tokens[nr_token].type = TK_POINTER;
-              printf("Pointer !\n");
+              // printf("Pointer !\n");
             } else {
               tokens[nr_token].type = rules[i].token_type;
-              printf("Mul\n");
+              // printf("Mul\n");
             }
            nr_token++;
            break;
-          case '-':    
-            if(nr_token == 0 || tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
+          case '-':
+            if(nr_token == 0) {
+              tokens[nr_token].type = rules[i].token_type;
+              // printf("op - !\n");
+            } else if(tokens[nr_token-1].type == '+' || tokens[nr_token-1].type == '-'|| tokens[nr_token-1].type == '*'|| tokens[nr_token-1].type == '/') {
               tokens[nr_token].type = TK_NEGATIVE_NUBER;
+              // printf("neg !\n");
             } else {
               tokens[nr_token].type = rules[i].token_type;
+              // printf("op - !\n");
             }
            nr_token++;
            break;
           case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case TK_EQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case TK_NEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case TK_LOGIC_AND:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           default: TODO();
         }
 
@@ -166,23 +174,30 @@ bool check_parentheses(int p, int q) {
 }
 
 int main_operation(int p, int q) {
-  int mainOpIndex, mainOpType;
-  int parentheses = 0;
-  for(mainOpIndex = 0, mainOpType = 0; p < q; p++) {
-    if(tokens[p].type == '(') {
-      parentheses++;
-    } else if (tokens[p].type == ')') {
-      parentheses--;
+  int mainOpIndex, mainOp_priority = 0, parentheses = 0, op_priority = 0;
+  for(mainOpIndex = 0; p < q; p++) {
+    switch (tokens[p].type)
+    {
+    case '(': parentheses++; break;
+    case ')': parentheses--; break;
+    // case ''; ;break;
+    case TK_POINTER:
+    case TK_NEGATIVE_NUBER: op_priority = 2 ; break;  // "--1"    /* 我们不实现自减运算, 这里应该解释成 -(-1) = 1 */
+    case '*':
+    case '/': op_priority = 3; break;
+    case '+':
+    case '-': op_priority = 4; break;
+    case TK_EQ:
+    case TK_NEQ: op_priority = 7; break;
+    
+    default: op_priority = 0; break;
     }
-  // Assert(parentheses >= 0, "Parentheses is error,only ) !");
-    if(((tokens[p].type == '+') |(tokens[p].type == '-') |(tokens[p].type == '*') |(tokens[p].type == '/')) & (parentheses == 0)) {
-      
-      if((mainOpIndex == 0) | ((mainOpType == '*') | (mainOpType == '/')) ) {             // Init(当检测到操作运算符并且保存下表位置为0) or op update
+
+    if(parentheses == 0) {
+      if( mainOp_priority <= op_priority) {
         mainOpIndex = p;
-        mainOpType = tokens[p].type;
-      } else if((((mainOpType == '+') | (mainOpType == '-')) & ((tokens[p].type == '+') | (tokens[p].type == '-')))) {  // same op
-        mainOpIndex = p;
-      } 
+        mainOp_priority = op_priority;
+      }
     } 
   }
 
@@ -201,24 +216,28 @@ int eval(int p,int q) {
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1);
   }
-  else if(tokens[p].type == TK_NEGATIVE_NUBER) {
-    return -eval(p +1, q);
-  }
-  else if(tokens[p].type == TK_POINTER) {
-    // printf("%#x\n", isa_reg_str2val(tokens[p+1].str, success));
-    return isa_reg_str2val(tokens[p+1].str, success);  // 只考虑后跟寄存器
-  }
+  // else if(tokens[p].type == TK_POINTER) {
+  //   // printf("%#x\n", isa_reg_str2val(tokens[p+1].str, success));
+  //   return isa_reg_str2val(tokens[p+1].str, success);  // 只考虑后跟寄存器
+  // }
+
   else {
     op = main_operation(p, q);
+    printf("%d\n", op);
     val1 = eval(p, op - 1);
     val2 = eval(op + 1, q);
     op_type = tokens[op].type;
 
     switch (op_type) {
+      case TK_NEGATIVE_NUBER: return -val2; break;
+      case TK_POINTER: return isa_reg_str2val(tokens[p+1].str, success); break;
       case '+': return val1 + val2; break;
       case '-': return val1 - val2; break;
       case '*': return val1 * val2; break;
       case '/': return val1 / val2; break;
+      case TK_EQ: return val1 == val2; break;
+      case TK_NEQ: return val1 != val2; break;
+      case TK_LOGIC_AND: return val1 && val2; break;
       default: assert(0);
     }
   }
