@@ -24,9 +24,8 @@ enum {
   TK_NOTYPE = 256, TK_EQ, TK_NEQ, 
   TK_DIVIDE, TK_EXP,
   TK_NEGATIVE_NUBER,
-  TK_REG,            // 访问寄存器
   TK_LOGIC_AND,      // 逻辑与
-  TK_LOGIC_OR,      // 逻辑与
+  TK_LOGIC_OR,      // 逻辑或
   TK_POINTER         // 指针解引用
 };
 
@@ -43,7 +42,7 @@ static struct rule {
   {"\\*", '*'},         // mul
   {"\\-", '-'},         // sub
   {"/", '/'},           // divide
-  {"\\$", TK_REG},
+  {"\\$", '$'},
   {"\\&", '&'},
   {"\\|", '|'},
   {"\\^", '^'},
@@ -141,6 +140,7 @@ static bool make_token(char *e) {
             }
            nr_token++;
            break;
+          case '$':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
@@ -201,6 +201,7 @@ int main_operation(int p, int q) {
     case '(': parentheses++; break;
     case ')': parentheses--; break;
     // case ''; ;break;
+    case '$':                       // NOTE- 不确定优先级
     case TK_POINTER:
     case TK_NEGATIVE_NUBER: op_priority = 2 ; break;  // "--1"    /* 我们不实现自减运算, 这里应该解释成 -(-1) = 1 */
     case '*':
@@ -256,6 +257,7 @@ int eval(int p,int q) {
       case '-': return val1 - val2; break;
       case '*': return val1 * val2; break;
       case '/': return val1 / val2; break;
+      case '$' : return isa_reg_str2val(tokens[p+1].str, success); break;
       case TK_EQ: return val1 == val2; break;
       case TK_NEQ: return val1 != val2; break;
       case TK_LOGIC_AND: return val1 && val2; break;
