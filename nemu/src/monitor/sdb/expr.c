@@ -19,6 +19,7 @@
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
+#include <memory/paddr.h>
 
 enum {
   TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_BEQ, TK_LEQ,
@@ -99,7 +100,7 @@ static bool make_token(char *e) {
         int substr_len = pmatch.rm_eo;
 
         // Assert(substr_len==0,);
-        if(substr_len > 8) {
+        if(substr_len > 16) {
           printf("Input str is too long, Out of Array!!!\n");
           // TODO - Only use first str
           return false;
@@ -264,7 +265,6 @@ int eval(int p,int q) {
       Log("转换失败：输入字符串不是一个有效的整数。未转换部分：%s\n", endptr);
       return 0;
     } else {
-      // printf("translator_number: %ld\n", translator_number);
       return translator_number;
     }
   }
@@ -281,7 +281,7 @@ int eval(int p,int q) {
 
     switch (op_type) {
       case TK_NEGATIVE_NUBER: return -val2; break;
-      case TK_POINTER: return isa_reg_str2val(tokens[p+1].str, success); break;  // FIXME
+      case TK_POINTER: return paddr_read(val2, 4); break;
       case '+': return val1 + val2; break;
       case '-': return val1 - val2; break;
       case '*': return val1 * val2; break;
