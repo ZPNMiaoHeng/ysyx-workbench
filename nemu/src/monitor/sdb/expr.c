@@ -246,12 +246,27 @@ int main_operation(int p, int q) {
 
 bool *success = (bool *)true;
 int eval(int p,int q) {
-  int op, op_type, val1, val2;
+  int op, op_type, val1, val2;//, translator_dex = 10;
+  char *endptr;
+  long int translator_number;
+
   if (p > q) {
     return 0;
   }
   else if (p == q) {
-    return atoi(tokens[p].str);
+    if ((strncmp(tokens[p].str, "0b", 2) == 0) || (strncmp(tokens[p].str, "0B", 2) == 0)) {
+      translator_number = strtol(tokens[p].str+2, &endptr, 2);  // NOTE - strtol处理二进制转换时需要跨过前缀0b
+    } else {
+      translator_number = strtol(tokens[p].str, &endptr, 0);
+    }
+
+    if(*endptr != '\0') {
+      Log("转换失败：输入字符串不是一个有效的整数。未转换部分：%s\n", endptr);
+      return 0;
+    } else {
+      // printf("translator_number: %ld\n", translator_number);
+      return translator_number;
+    }
   }
   else if (check_parentheses(p, q) == true) {
     return eval(p + 1, q - 1);
