@@ -21,7 +21,7 @@
 #include <regex.h>
 
 enum {
-  TK_NOTYPE = 256, TK_EQ, TK_NEQ, 
+  TK_NOTYPE = 256, TK_EQ, TK_NEQ, TK_BEQ, TK_LEQ,
   TK_DIVIDE, TK_EXP,
   TK_NEGATIVE_NUBER,
   TK_LOGIC_AND,      // 逻辑与
@@ -34,13 +34,17 @@ static struct rule {
   int token_type;
 } rules[] = {
   {" +", TK_NOTYPE},    // spaces
-  {"\\+", '+'},         // plus    // ??? why //+?? /+?
-  {"==", TK_EQ},        // equal
+  {"\\+", '+'},
+  {">", '>'},
+  {">=", TK_BEQ},
+  {"<", '<'},
+  {"<=", TK_LEQ},
+  {"==", TK_EQ},
   {"!=", TK_NEQ},
   {"\\(", '('},
   {"\\)", ')'},
-  {"\\*", '*'},         // mul
-  {"\\-", '-'},         // sub
+  {"\\*", '*'},         // mul or 指针解引用
+  {"\\-", '-'},         // sub or 负数
   {"/", '/'},           // divide
   {"\\$", '$'},
   {"\\&", '&'},
@@ -144,6 +148,10 @@ static bool make_token(char *e) {
           case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case '>':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case TK_BEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case '<':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          case TK_LEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case TK_EQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case TK_NEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '&': 
@@ -208,6 +216,12 @@ int main_operation(int p, int q) {
     case '/': op_priority = 3; break;
     case '+':
     case '-': op_priority = 4; break;
+
+    case '<': 
+    case TK_BEQ: 
+    case '>': 
+    case TK_LEQ: op_priority = 6; break;
+    
     case TK_EQ:
     case TK_NEQ: op_priority = 7; break;
     case '&': op_priority = 8; break;
@@ -252,12 +266,17 @@ int eval(int p,int q) {
 
     switch (op_type) {
       case TK_NEGATIVE_NUBER: return -val2; break;
-      case TK_POINTER: return isa_reg_str2val(tokens[p+1].str, success); break;
+      case TK_POINTER: return isa_reg_str2val(tokens[p+1].str, success); break;  // FIXME
       case '+': return val1 + val2; break;
       case '-': return val1 - val2; break;
       case '*': return val1 * val2; break;
       case '/': return val1 / val2; break;
       case '$' : return isa_reg_str2val(tokens[p+1].str, success); break;
+      
+      case '<': return val1 < val2; break;
+      case TK_BEQ: return val1 >= val2; break;
+      case '>': return val1 < val2; break;
+      case TK_LEQ: return val1 <= val2; break;
       case TK_EQ: return val1 == val2; break;
       case TK_NEQ: return val1 != val2; break;
       case TK_LOGIC_AND: return val1 && val2; break;
