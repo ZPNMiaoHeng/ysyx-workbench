@@ -247,7 +247,7 @@ int main_operation(int p, int q) {
 
 bool *success = (bool *)true;
 int eval(int p,int q) {
-  int op, op_type, val1, val2;//, translator_dex = 10;
+  int op, op_type, val1=0, val2=0;//, translator_dex = 10;
   char *endptr;
   long int translator_number;
 
@@ -255,6 +255,10 @@ int eval(int p,int q) {
     return 0;
   }
   else if (p == q) {
+    if(isa_reg_name(tokens[p].str) == true) {   //* 检测是否为寄存器名字，若是返回0；
+      return 0;
+    }
+
     if ((strncmp(tokens[p].str, "0b", 2) == 0) || (strncmp(tokens[p].str, "0B", 2) == 0)) {
       translator_number = strtol(tokens[p].str+2, &endptr, 2);  // NOTE - strtol处理二进制转换时需要跨过前缀0b
     } else {
@@ -274,10 +278,14 @@ int eval(int p,int q) {
 
   else {
     op = main_operation(p, q);
-    printf("%d\n", op);
-    val1 = eval(p, op - 1);
-    val2 = eval(op + 1, q);
     op_type = tokens[op].type;
+    // printf("%d\n", op);
+    if((op_type != '$') & (op_type != TK_POINTER)) { //* 指针解引用和打印寄存器值不需要计算
+      if(op-1 >= p) {             //* 当运行单目运算符时，不需要计算val1
+        val1 = eval(p, op - 1);
+      }
+      val2 = eval(op + 1, q);
+    }
 
     switch (op_type) {
       case TK_NEGATIVE_NUBER: return -val2; break;

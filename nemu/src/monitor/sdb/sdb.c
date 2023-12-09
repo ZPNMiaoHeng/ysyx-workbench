@@ -72,7 +72,6 @@ static int cmd_si(char *args){
 }
 
 static int cmd_info(char *args){
-  //TODO - 实现打印监视点；
   char *info_op = strtok(args, " ");
 
   if(info_op == NULL) {
@@ -110,15 +109,24 @@ static int cmd_p(char *args){
   if(success == false) {
     printf("bad expr, please retry!\n");
   } else{
-    printf("Result is %ld\n", result);
+    printf("Result is %ld\t%#lx\n", result, result);
   }
   return 0;
 }
 
 static int cmd_w(char *args){  //* 监视点：先实现监视寄存器
   WP* new_watchpoint = new_wp();
+  bool *success = (bool *)true;
+  uint64_t old_result = expr(args, success);
+  if(success == false) {
+    printf("bad expr, please retry!\n");
+    return 0;
+  }
+
   new_watchpoint->expr = args;
-  printf("%d\t%s\n", new_watchpoint->NO, new_watchpoint->expr);
+  new_watchpoint->old_value = old_result;
+
+  printf("%d\t%s\t%#x\n", new_watchpoint->NO, new_watchpoint->expr, new_watchpoint->old_value);
   return 0;
 }
 
