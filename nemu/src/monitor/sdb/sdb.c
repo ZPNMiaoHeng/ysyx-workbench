@@ -72,7 +72,18 @@ static int cmd_si(char *args){
 }
 
 static int cmd_info(char *args){
-  isa_reg_display();
+  //TODO - 实现打印监视点；
+  char *info_op = strtok(args, " ");
+
+  if(info_op == NULL) {
+    printf("Please choose info (r)isa_reg or (w)watchpoint\n");
+  } else if(strcmp(info_op, "w") == 0) {
+    watchpoint_display();
+  } else if(strcmp(info_op, "r") == 0){
+    isa_reg_display();
+  } else {
+    printf("Please choose info (r)isa_reg or (w)watchpoint\n");
+  }
   return 0;
 }
 
@@ -104,8 +115,10 @@ static int cmd_p(char *args){
   return 0;
 }
 
-static int cmd_w(char *args){
-  TODO();
+static int cmd_w(char *args){  //* 监视点：先实现监视寄存器
+  WP* new_watchpoint = new_wp();
+  new_watchpoint->expr = args;
+  printf("%d\t%s\n", new_watchpoint->NO, new_watchpoint->expr);
   return 0;
 }
 
@@ -124,10 +137,10 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "si","si", cmd_si},
-  { "i", "info", cmd_info},
+  { "i", "info r(isa reg)/w(watchpoint)", cmd_info},
   { "x","x", cmd_x},
   { "p","p", cmd_p},
-  { "w","w", cmd_w},
+  { "w","watchpoint expr", cmd_w},
   { "d","d", cmd_d},
   { "q", "Exit NEMU", cmd_q },
 
