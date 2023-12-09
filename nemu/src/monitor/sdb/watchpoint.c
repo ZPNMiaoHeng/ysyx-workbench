@@ -70,13 +70,14 @@ bool watchpoint_checkout() {
   bool *success = (bool *)true;
   uint64_t new_result;
   for(WP *wp = head; wp; wp = wp->next) {
-    printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
+    // printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
     new_result = expr(wp->expr, success);
     if(new_result != wp->old_value) {
       Log("Watchpoint %d: %s", wp->NO, wp->expr);
       printf("Watchpoint %d: %s\n\n", wp->NO, wp->expr);
       printf("Old value = %#lx\n", wp->old_value);
       printf("New value = %#lx\n", new_result);
+      wp->old_value = new_result;
       return false;
     }
   }
