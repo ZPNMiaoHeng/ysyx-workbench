@@ -21,8 +21,11 @@
 typedef struct watchpoint {
   int NO;
   struct watchpoint *next;
-  char *expr;// = buf[100];
-  int old_value;
+  // char *expr[100];// = buf[100];
+  // char expr;
+  // char *expr;
+  char expr[100];
+  long int old_value;
 
   /* TODO: Add more members if necessary */
 
@@ -31,5 +34,6 @@ typedef struct watchpoint {
 word_t expr(char *e, bool *success);
 void watchpoint_display();
 WP* new_wp();
+bool watchpoint_checkout();
 
 #endif

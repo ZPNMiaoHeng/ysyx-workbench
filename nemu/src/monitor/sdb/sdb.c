@@ -122,11 +122,11 @@ static int cmd_w(char *args){  //* 监视点：先实现监视寄存器
     printf("bad expr, please retry!\n");
     return 0;
   }
-
-  new_watchpoint->expr = args;
+  // printf("%s\n", args);
+  strcpy(new_watchpoint->expr, args);
   new_watchpoint->old_value = old_result;
 
-  printf("%d\t%s\t%#x\n", new_watchpoint->NO, new_watchpoint->expr, new_watchpoint->old_value);
+  printf("%d\t%s\t%#lx\n", new_watchpoint->NO, new_watchpoint->expr, new_watchpoint->old_value);
   return 0;
 }
 
