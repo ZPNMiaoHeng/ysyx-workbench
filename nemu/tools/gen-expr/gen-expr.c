@@ -42,16 +42,33 @@ uint32_t choose(uint32_t n) {
   return rand() % n;
 }
 
-// static int gen_rand_op() {
 uint32_t gen_rand_op() {
-  int op = 0, rand = 0;
-  switch (choose(4)) {
-    case 0: op = '+'; rand=3; break;
-    case 1: op = '-'; rand=3; break;
-    case 2: op = '*'; rand=3; break;
-    default: op = '/'; rand = 1; break;
+  char* op;
+  int rand = 0;
+  // counter_expr_gen++;
+  switch (choose(10)) {
+    case 0: op = "+"; rand=3; break;
+    case 1: op = "-"; rand=3; break;
+    case 2: op = "*"; rand=3; break;
+
+    // TODO - 等于判断
+    case 3: op = "<"; rand=3; break;
+    case 4: op = "<="; rand=3; break;
+    case 5: op = ">"; rand=3; break;
+    case 6: op = ">="; rand=3; break;
+    
+    // case 7: op = "=="; rand=3; break;
+    // case 8: op = "!="; rand=3; break;
+    // case 9: op = ">="; rand=3; break;
+
+    // TODO - 位操作
+
+    default: op = "/"; rand = 1; break;
   }
-  sprintf(pa++, "%c", op);
+  // int buf_size = sprintf(pa++, "%s", op);
+  int buf_size = sprintf(pa, "%s", op);
+  pa = pa + buf_size;
+  // printf("%d\n", buf_size);
 
   return rand;
 }
@@ -68,8 +85,8 @@ static void gen(int n) {
   sprintf(pa++, "%c", n);
 }
 
-static void gen_rand_expr(int i) {
 
+static void gen_rand_expr(int i) {
   switch (choose(i)) {
     case 0: gen_num(divide_zero); break;
     case 1: gen('('); gen_rand_expr(3); gen(')'); break;
@@ -106,7 +123,6 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     pclose(fp);
 
-    // printf("%u %s\n", result, buf);
     printf("%d %s\n", result, buf);
   }
   return 0;

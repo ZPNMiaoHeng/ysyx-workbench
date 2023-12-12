@@ -298,7 +298,7 @@ int eval(int p,int q) {
       
       case '<': return val1 < val2; break;
       case TK_BEQ: return val1 >= val2; break;
-      case '>': return val1 < val2; break;
+      case '>': return val1 > val2; break;
       case TK_LEQ: return val1 <= val2; break;
       case TK_EQ: return val1 == val2; break;
       case TK_NEQ: return val1 != val2; break;
