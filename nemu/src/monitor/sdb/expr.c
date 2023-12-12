@@ -36,11 +36,11 @@ static struct rule {
 } rules[] = {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},
-  {">=", TK_BEQ},      // FIXME - 数组越1
+  {">=", TK_BEQ},      // NOTE - '>='先匹配，其次在匹配>
   {"<=", TK_LEQ},
   {">", '>'},
   {"<", '<'},
-  {"==", TK_EQ},       // FIXME = 
+  {"==", TK_EQ},
   {"!=", TK_NEQ},
   {"\\(", '('},
   {"\\)", ')'},
@@ -49,9 +49,9 @@ static struct rule {
   {"/", '/'},           // divide
   {"\\$", '$'},
   {"\\&", '&'},
-  {"\\|", '|'},                     // FIXME - 不能识别
+  {"\\|", '|'},
   {"\\^", '^'},
-  {"[0-9 | a-z | A-Z]*", TK_EXP},
+  {"[0-9a-zA-Z]*", TK_EXP},
   {"\\&&", TK_LOGIC_AND},
   {"\\||", TK_LOGIC_OR},            // FIXME - 不能识别操作符
 };
@@ -151,13 +151,6 @@ static bool make_token(char *e) {
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '>':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
-          // case '>':
-            // if(tokens[nr_token+1].type == '=') {
-              // tokens[nr_token].type = TK_LEQ;
-            // } else {
-              // tokens[nr_token].type = rules[i].token_type;
-            // }
-              //  nr_token++; break;
           case TK_BEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '<':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case TK_LEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
