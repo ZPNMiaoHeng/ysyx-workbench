@@ -95,7 +95,6 @@ static bool make_token(char *e) {
   while (e[position] != '\0') {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
-      // if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
@@ -210,7 +209,6 @@ int main_operation(int p, int q) {
     {
     case '(': parentheses++; break;
     case ')': parentheses--; break;
-    // case ''; ;break;
     case '$':                       // NOTE- 不确定优先级
     case TK_POINTER:
     case TK_NEGATIVE_NUBER: op_priority = 2 ; break;  // "--1"    /* 我们不实现自减运算, 这里应该解释成 -(-1) = 1 */
@@ -248,7 +246,7 @@ int main_operation(int p, int q) {
 
 bool *success = (bool *)true;
 int eval(int p,int q) {
-  int op, op_type, val1=0, val2=0;//, translator_dex = 10;
+  int op, op_type, val1=0, val2=0;
   char *endptr;
   long int translator_number;
 

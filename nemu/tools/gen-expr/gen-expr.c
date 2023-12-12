@@ -45,8 +45,7 @@ uint32_t choose(uint32_t n) {
 uint32_t gen_rand_op() {
   char* op;
   int rand = 0;
-  // counter_expr_gen++;
-  switch (choose(10)) {
+  switch (choose(15)) {
     case 0: op = "+"; rand=3; break;
     case 1: op = "-"; rand=3; break;
     case 2: op = "*"; rand=3; break;
@@ -56,12 +55,15 @@ uint32_t gen_rand_op() {
     case 4: op = "<="; rand=3; break;
     case 5: op = ">"; rand=3; break;
     case 6: op = ">="; rand=3; break;
-    
-    // case 7: op = "=="; rand=3; break;
-    // case 8: op = "!="; rand=3; break;
-    // case 9: op = ">="; rand=3; break;
+    case 7: op = "=="; rand=3; break;
+    case 8: op = "!="; rand=3; break;
 
     // TODO - 位操作
+    case 9: op = "&"; rand=3; break;
+    case 10: op = "|"; rand=3; break;
+    case 11: op = "^"; rand=3; break;
+    case 12: op = "&&"; rand=3; break;
+    case 13: op = "||"; rand=3; break;
 
     default: op = "/"; rand = 1; break;
   }
