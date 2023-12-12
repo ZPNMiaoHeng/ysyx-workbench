@@ -36,11 +36,11 @@ static struct rule {
 } rules[] = {
   {" +", TK_NOTYPE},    // spaces
   {"\\+", '+'},
-  {">", '>'},
-  {">=", TK_BEQ},
-  {"<", '<'},
+  {">=", TK_BEQ},      // FIXME - 数组越1
   {"<=", TK_LEQ},
-  {"==", TK_EQ},
+  {">", '>'},
+  {"<", '<'},
+  {"==", TK_EQ},       // FIXME = 
   {"!=", TK_NEQ},
   {"\\(", '('},
   {"\\)", ')'},
@@ -49,11 +49,11 @@ static struct rule {
   {"/", '/'},           // divide
   {"\\$", '$'},
   {"\\&", '&'},
-  {"\\|", '|'},
+  {"\\|", '|'},                     // FIXME - 不能识别
   {"\\^", '^'},
   {"[0-9 | a-z | A-Z]*", TK_EXP},
   {"\\&&", TK_LOGIC_AND},
-  {"\\||", TK_LOGIC_OR},
+  {"\\||", TK_LOGIC_OR},            // FIXME - 不能识别操作符
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -95,6 +95,7 @@ static bool make_token(char *e) {
   while (e[position] != '\0') {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
+      // if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
         char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
@@ -150,6 +151,13 @@ static bool make_token(char *e) {
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '>':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          // case '>':
+            // if(tokens[nr_token+1].type == '=') {
+              // tokens[nr_token].type = TK_LEQ;
+            // } else {
+              // tokens[nr_token].type = rules[i].token_type;
+            // }
+              //  nr_token++; break;
           case TK_BEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '<':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case TK_LEQ:    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
