@@ -257,7 +257,6 @@ int main_operation(int p, int q) {
 bool *success = (bool *)true;
 int eval(int p,int q) {
   int op, op_type, val1=0, val2=0;
-  // word_t op, op_type, val1=0, val2=0;
   char *endptr;
   long int translator_number;
 
