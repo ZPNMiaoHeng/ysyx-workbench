@@ -31,11 +31,8 @@ void init_wp_pool() {
   free_ = wp_pool;
 }
 
-/* TODO: Implement the functionality of watchpoint */
-
 WP* new_wp() {                // 从free_链表中返回一个空闲的监视点结构
   if (free_ == NULL) {
-    // Handle the case when there are no free watchpoint structures available
     assert(0);
     return NULL;
   } else {
@@ -49,21 +46,45 @@ WP* new_wp() {                // 从free_链表中返回一个空闲的监视点
   }
 }
 
-void free_wp(WP *wp) {      // ,free_wp()将wp归还到free_链表中,
+void free_wp(WP *wp) {      // ,free_wp()将wp从head中归还到free_链表中,
   wp->next = free_;
   free_ = wp;
+  memset(wp->expr, '\0', sizeof(wp->expr));
+  wp->old_value = 0;
 }
 
 void watchpoint_display() {
   // printf("Num\tType\tDisp\tEnb\tAddress\tWhat\n");   // gdb 完整版
-  printf("Num\tWhat\told value\n");
+  printf("Num\tWhat\told value\thead\n");
   for(WP *wp = head; wp; wp = wp->next) {
     printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
   }
 
-  // for(int i=0; i < NR_WP; i++) {
-  //   printf("%d\t%s\t%#lx\n", wp_pool[i].NO, wp_pool[i].expr, wp_pool[i].old_value);
+  // printf("Num\tWhat\told value\tfree\n");
+  // for(WP *wp = free_; wp; wp = wp->next) {
+  //   printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
   // }
+}
+
+int find_wp(int NO) {
+  WP *prev = NULL;
+  WP *current = head;
+
+  while (current != NULL) {
+    if (current->NO == NO) {
+      printf("Find free watchpoint:%d\t%s\t%#lx\n", current->NO, current->expr, current->old_value);
+      if (prev == NULL) {
+        head = current->next;
+      } else {
+        prev->next = current->next;
+      }
+      free_wp(current);
+      return 0;
+    }
+    prev = current;
+    current = current->next;
+  }
+  return 0;
 }
 
 bool watchpoint_checkout() {
@@ -81,7 +102,6 @@ bool watchpoint_checkout() {
       printf("New value = %#lx\n", new_result);
       wp->old_value = new_result;
       watchpoint_change++;
-      // return false;
     }
   }
   

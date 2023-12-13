@@ -35,5 +35,6 @@ word_t expr(char *e, bool *success);
 void watchpoint_display();
 WP* new_wp();
 bool watchpoint_checkout();
+int find_wp(int NO);
 
 #endif

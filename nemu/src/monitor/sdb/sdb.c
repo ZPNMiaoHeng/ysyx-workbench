@@ -132,7 +132,10 @@ static int cmd_w(char *args){  //* 监视点：先实现监视寄存器
 }
 
 static int cmd_d(char *args){
-  TODO();
+  int NO;
+  sscanf(args, "%d", &NO);
+  find_wp(NO);
+
   return 0;
 }
 
