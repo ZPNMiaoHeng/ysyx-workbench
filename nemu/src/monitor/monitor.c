@@ -25,7 +25,24 @@ void init_sdb();
 void init_disasm(const char *triple);
 
 static void welcome() {
-  Log("Trace: %s", MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)));
+  // Log("Build Options:Debug: %s, Address sanitizer:%s", 
+  //   MUXDEF(CONFIG_CC_DEBUG, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+  //   MUXDEF(CONFIG_CC_ASAN, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+  // );
+  // Log("Trace: %s, Watchpoint:%s", 
+  //   MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+  //   MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+  // );
+  // Log("Build Options:\tDebug\tAddress sanitizer\tTrace\tWatchpoint\t");
+  // Log("State:\t\t%s\t%s\t\t\t%s\t%s\t",
+  Log("Debug\tAddress sanitizer\tTrace\tWatchpoint\t");
+  Log("%s\t\t%s\t\t\t%s\t%s\t",
+    MUXDEF(CONFIG_CC_DEBUG, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_CC_ASAN, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+  );
+
   IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
         "to record the trace. This may lead to a large log file. "
         "If it is not necessary, you can disable it in menuconfig"));
@@ -49,7 +66,7 @@ static int difftest_port = 1234;
 
 static long test_expr() {
   if(expr_file == NULL) {
-    Log("No test expr.");
+    Log("No gen-expr input is given.");
     return 0;
   }
 
@@ -162,7 +179,7 @@ void init_monitor(int argc, char *argv[]) {
   /* Initialize the simple debugger. */
   init_sdb();
 
-    /* Test expr */
+  /* Test expr */
   test_expr();
 
 #ifndef CONFIG_ISA_loongarch32r
