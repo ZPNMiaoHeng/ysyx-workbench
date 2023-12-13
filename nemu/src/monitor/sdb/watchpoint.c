@@ -69,6 +69,8 @@ void watchpoint_display() {
 bool watchpoint_checkout() {
   bool *success = (bool *)true;
   uint64_t new_result;
+  int watchpoint_change = 0;
+
   for(WP *wp = head; wp; wp = wp->next) {
     // printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
     new_result = expr(wp->expr, success);
@@ -78,8 +80,14 @@ bool watchpoint_checkout() {
       printf("Old value = %#lx\n", wp->old_value);
       printf("New value = %#lx\n", new_result);
       wp->old_value = new_result;
-      return false;
+      watchpoint_change++;
+      // return false;
     }
   }
-  return true;
+  
+  if(watchpoint_change != 0) {
+      return false;
+  } else {
+      return true;
+  }
 }
