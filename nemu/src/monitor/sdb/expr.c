@@ -145,7 +145,17 @@ static bool make_token(char *e) {
             }
            nr_token++;
            break;
-          case '$':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
+          // NOTE - 对于打印0号寄存器‘p $$0',对第二个$特殊处理;直接将其后面$0强制变为 TK——EXP,并赋值；从而跳过输入字符串中的 $0。
+          case '$':
+            if(nr_token != 0 && tokens[nr_token-1].type == '$') {
+              tokens[nr_token].type = TK_EXP;
+              memset(tokens[nr_token].str, '\0', sizeof(tokens[nr_token].str));
+              strcpy(tokens[nr_token].str, "$0");
+              nr_token ++;
+            } else {
+              tokens[nr_token].type = rules[i].token_type;
+            }
+            nr_token++; break;
           case '/':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case '(':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
           case ')':    tokens[nr_token].type = rules[i].token_type; nr_token++; break;
