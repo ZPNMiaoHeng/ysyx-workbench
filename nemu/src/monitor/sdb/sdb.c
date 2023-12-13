@@ -122,19 +122,25 @@ static int cmd_w(char *args){  //* 监视点：先实现监视寄存器
     printf("bad expr, please retry!\n");
     return 0;
   }
-  // printf("%s\n", args);
   strcpy(new_watchpoint->expr, args);
   new_watchpoint->old_value = old_result;
 
   printf("%d\t%s\t%#lx\n", new_watchpoint->NO, new_watchpoint->expr, new_watchpoint->old_value);
-  // Log("%d\t%s\t%#lx\n", new_watchpoint->NO, new_watchpoint->expr, new_watchpoint->old_value);
   return 0;
 }
 
 static int cmd_d(char *args){
   int NO;
   sscanf(args, "%d", &NO);
-  find_wp(NO);
+  delete_wp(NO);
+
+  return 0;
+}
+
+static int cmd_e(char *args){
+  int NO;
+  sscanf(args, "%d", &NO);
+  enable_wp(NO);
 
   return 0;
 }
@@ -148,12 +154,13 @@ static struct {
 } cmd_table [] = {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
-  { "si","si", cmd_si},
-  { "i", "info r(isa reg)/w(watchpoint)", cmd_info},
-  { "x","x", cmd_x},
-  { "p","p", cmd_p},
-  { "w","watchpoint expr", cmd_w},
-  { "d","d", cmd_d},
+  { "si", "Single execute cpu", cmd_si},
+  { "i", "Info r(isa reg)/w(watchpoint)", cmd_info},
+  { "x", "Display memory context on the addr", cmd_x},
+  { "p", "Dispaly expr result", cmd_p},
+  { "w", "Watchpoint expr", cmd_w},
+  { "d", "Delete watchpoint", cmd_d},
+  { "e", "Enable/Disable watchpoint", cmd_e},
   { "q", "Exit NEMU", cmd_q },
 
 };

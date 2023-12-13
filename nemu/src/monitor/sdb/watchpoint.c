@@ -25,6 +25,9 @@ void init_wp_pool() {
   for (i = 0; i < NR_WP; i ++) {
     wp_pool[i].NO = i;
     wp_pool[i].next = (i == NR_WP - 1 ? NULL : &wp_pool[i + 1]);
+    strcpy(wp_pool[i].Display, "keep");
+    strcpy(wp_pool[i].Enb, "y");
+    memset(wp_pool[i].expr, '\0', sizeof(wp_pool[i].expr));
   }
 
   head = NULL;
@@ -55,9 +58,11 @@ void free_wp(WP *wp) {      // ,free_wp()将wp从head中归还到free_链表中,
 
 void watchpoint_display() {
   // printf("Num\tType\tDisp\tEnb\tAddress\tWhat\n");   // gdb 完整版
-  printf("Num\tWhat\told value\thead\n");
+  printf("Num\tDisp\tEnb\tWhat\told value\n");   // gdb 完整版
+  // printf("Num\tWhat\told value\thead\n");
   for(WP *wp = head; wp; wp = wp->next) {
-    printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
+    // printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
+    printf("%d\t%s\t%s\t%s\t%#lx\n", wp->NO, wp->Display, wp->Enb, wp->expr, wp->old_value);
   }
 
   // printf("Num\tWhat\told value\tfree\n");
@@ -66,13 +71,14 @@ void watchpoint_display() {
   // }
 }
 
-int find_wp(int NO) {
+int delete_wp(int NO) {
   WP *prev = NULL;
   WP *current = head;
 
   while (current != NULL) {
     if (current->NO == NO) {
-      printf("Find free watchpoint:%d\t%s\t%#lx\n", current->NO, current->expr, current->old_value);
+      // printf("Find free watchpoint:%d\t%s\t%#lx\n", current->NO, current->expr, current->old_value);
+      printf("%d\t%s\t%s\t%s\t%#lx\n", current->NO, current->Display, current->Enb, current->expr, current->old_value);
       if (prev == NULL) {
         head = current->next;
       } else {
@@ -84,6 +90,32 @@ int find_wp(int NO) {
     prev = current;
     current = current->next;
   }
+
+  printf("Please input true watchpoint NO!\n");
+  return 0;
+}
+
+int enable_wp(int NO) {
+  for(WP *wp = head; wp; wp=wp->next) {
+    if(wp->NO == NO) {
+      // printf("enable watchpoint:%d\t%s\t%s\t%s\t%#lx\n", wp->NO, wp->Display, wp->Enb, wp->expr, wp->old_value);
+      if(strcmp(wp->Enb, "y") == 0) {
+        printf("disable watchpoint:%d\n", wp->NO);
+        memset(wp->Enb, '\0', sizeof(wp->Enb));
+        strcpy(wp->Enb, "n");
+      } else if(strcmp(wp->Enb, "n") == 0) {
+        printf("enable watchpoint:%d\n", wp->NO);
+        memset(wp->Enb, '\0', sizeof(wp->Enb));
+        strcpy(wp->Enb, "y");
+      } else {
+        printf("Error watchpoint enb!\n");
+        memset(wp->Enb, '\0', sizeof(wp->Enb));
+        strcpy(wp->Enb, "y");
+      }
+      return 0;
+    }
+  }
+  printf("Please input true watchpoint NO!\n");
   return 0;
 }
 
@@ -95,7 +127,7 @@ bool watchpoint_checkout() {
   for(WP *wp = head; wp; wp = wp->next) {
     // printf("%d\t%s\t%#lx\n", wp->NO, wp->expr, wp->old_value);
     new_result = expr(wp->expr, success);
-    if(new_result != wp->old_value) {
+    if((new_result != wp->old_value) && (strcmp(wp->Enb, "y") == 0)) {
       Log("Watchpoint %d: %s", wp->NO, wp->expr);
       printf("Watchpoint %d: %s\n\n", wp->NO, wp->expr);
       printf("Old value = %#lx\n", wp->old_value);

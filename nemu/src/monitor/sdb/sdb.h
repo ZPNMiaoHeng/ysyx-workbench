@@ -20,14 +20,11 @@
 
 typedef struct watchpoint {
   int NO;
+  char Display[10];
+  char Enb[10];
   struct watchpoint *next;
-  // char *expr[100];// = buf[100];
-  // char expr;
-  // char *expr;
   char expr[100];
   long int old_value;
-
-  /* TODO: Add more members if necessary */
 
 } WP;
 
@@ -35,6 +32,7 @@ word_t expr(char *e, bool *success);
 void watchpoint_display();
 WP* new_wp();
 bool watchpoint_checkout();
-int find_wp(int NO);
+int delete_wp(int NO);
+int enable_wp(int NO);
 
 #endif
