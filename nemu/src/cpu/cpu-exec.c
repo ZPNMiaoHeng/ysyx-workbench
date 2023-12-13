@@ -40,11 +40,11 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 
+#ifdef CONFIG_WATCHPOINT_COND
   if(watchpoint_checkout() == false) {
     nemu_state.state = NEMU_STOP;
-    // sdb_mainloop();
   }
-  // TODO - 扫描所有的监视点，并对其中表达式求值；若求值结果变化则改变nemu执行状态；
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
