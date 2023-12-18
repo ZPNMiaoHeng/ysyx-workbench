@@ -23,7 +23,7 @@ char *strcpy(char *dst, const char *src) {
 char *strncpy(char *dst, const char *src, size_t n) {
   char *return_value = dst;
   int src_len = strlen(src), i;
-  
+
   if(src_len >= n) {
     for(i=0; i<n; i++) {
       *dst++ = *src++;
@@ -55,7 +55,19 @@ int strcmp(const char *s1, const char *s2) {
 }
 
 int strncmp(const char *s1, const char *s2, size_t n) {
-  panic("Not implemented");
+  int i;
+  for(i=0; i<n; i++) {
+    if((*s1 != *s2) | (*s1 =='\0') | (*s2 == '\0')) {  //退出条件：当不相等或者遇到\0
+      break;
+    }
+    if(i == n-1) {
+      return 0;
+    }
+    s1++;
+    s2++;
+  }
+
+  return *s1-*s2;
 }
 
 void *memset(void *s, int c, size_t n) {
