@@ -9,9 +9,11 @@ size_t strlen(const char *s) {
 }
 
 char *strcpy(char *dst, const char *src) {
+  char *return_value = dst;
   while ((*dst++ = *src++))
     ;
-  return dst;
+  return return_value;
+
 }
 
 char *strncpy(char *dst, const char *src, size_t n) {
