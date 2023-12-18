@@ -11,7 +11,6 @@ size_t strlen(const char *s) {
     i++;
   }
   return i;
-  // panic("Not implemented");
 }
 
 char *strcpy(char *dst, const char *src) {
@@ -22,7 +21,20 @@ char *strcpy(char *dst, const char *src) {
 }
 
 char *strncpy(char *dst, const char *src, size_t n) {
-  panic("Not implemented");
+  char *return_value = dst;
+  int src_len = strlen(src), i;
+  
+  if(src_len >= n) {
+    for(i=0; i<n; i++) {
+      *dst++ = *src++;
+    } 
+  } else {
+    for(i=0; i<src_len; i++ ) {
+      *dst++ = *src++;
+    }
+    memset(dst, '\0', (n- src_len));
+  }
+  return return_value;
 }
 
 char *strcat(char *dst, const char *src) {
