@@ -14,7 +14,37 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 }
 
 int sprintf(char *out, const char *fmt, ...) {
-  panic("Not implemented");
+  va_list ap;
+  int d;
+  // char c;
+  char *s;
+  // int return_value;
+
+  va_start(ap, fmt);
+
+  while(*fmt)
+    switch (*fmt++) {
+      case 's':
+        memset(out, '\0', 128);
+        s = va_arg(ap, char *);
+        strcpy(out, s);
+        // return_value = sizeof(strcpy(out, s));
+        break;
+
+      case 'd':
+        memset(out, '\0', 128);
+        d = va_arg(ap, int);   // 如何将d存入out中呢？？？
+         *out = d;
+        // out++;
+/*
+      case 'c':
+        c = (char) va_arg(ap, int);
+        break;
+    */
+    }
+  va_end(ap);
+
+  return 0;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {

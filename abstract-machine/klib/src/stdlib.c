@@ -29,6 +29,14 @@ int atoi(const char* nptr) {
   return x;
 }
 
+// char* itoa(int value, char *str) {
+//   char buf[128];
+//   char *bp = buf;
+//   if((value /= 10) > 0) {
+//     *bp++ = value % 10 + '0';
+//   }
+// }
+
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:

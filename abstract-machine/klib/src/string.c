@@ -5,7 +5,13 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 size_t strlen(const char *s) {
-  panic("Not implemented");
+  int i = 0;
+  while(*s != '\0') {
+    s++;
+    i++;
+  }
+  return i;
+  // panic("Not implemented");
 }
 
 char *strcpy(char *dst, const char *src) {
@@ -64,12 +70,15 @@ void *memcpy(void *out, const void *in, size_t n) {
 
 int memcmp(const void *s1, const void *s2, size_t n) {
   const unsigned char *p = s1, *q=s2;
-  for (int i = 0; i < n; i++) {
-    for(; *p == *q; p++, q++) {
-      if(*p == '\0') {
-        return 0;
-      }
+  for(int i=0; i<n; i++) {
+    if(*p != *q) {
+      break;
     }
+    if(i == n-1) {
+      return 0;
+    }
+    p++;
+    q++;
   }
   return *p - *q;
 }
