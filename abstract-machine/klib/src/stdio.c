@@ -34,8 +34,8 @@ int sprintf(char *out, const char *fmt, ...) {
       case 'd':
         memset(out, '\0', 128);
         d = va_arg(ap, int);   // 如何将d存入out中呢？？？
-         *out = d;
-        // out++;
+        *out = itoa(d);
+        out++;
 /*
       case 'c':
         c = (char) va_arg(ap, int);

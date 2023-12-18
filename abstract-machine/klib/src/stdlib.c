@@ -29,13 +29,23 @@ int atoi(const char* nptr) {
   return x;
 }
 
-// char* itoa(int value, char *str) {
-//   char buf[128];
-//   char *bp = buf;
-//   if((value /= 10) > 0) {
-//     *bp++ = value % 10 + '0';
-//   }
-// }
+char* itoa(int value, char *str) {
+  char buf[128], temp;
+  char *bp = buf, *return_bp = buf;
+
+  do {
+    *bp++ = value % 10 + '0';
+  } while((value /= 10) > 0);
+  
+  int buf_len = strlen(buf);
+  for(int i=0, j = buf_len-1; i<j; i++, j--) {
+    temp = buf[i];
+    buf[i] = buf[j];
+    buf[j] = temp;
+  }
+
+  return buf;
+}
 
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
