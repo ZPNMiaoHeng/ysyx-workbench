@@ -29,23 +29,25 @@ int atoi(const char* nptr) {
   return x;
 }
 
-char* itoa(int value, char *str) {
-  char buf[128], temp;
-  char *bp = buf, *return_bp = buf;
+// * 实现简单十进制数字转换
+char *itoa(int value, char *str) {
+  char temp;
+  int counter=0;
+  char *return_ptr = str;
 
   do {
-    *bp++ = value % 10 + '0';
+    counter++;
+    *str++ = value % 10 + '0';
   } while((value /= 10) > 0);
-  
-  int buf_len = strlen(buf);
-  for(int i=0, j = buf_len-1; i<j; i++, j--) {
-    temp = buf[i];
-    buf[i] = buf[j];
-    buf[j] = temp;
-  }
 
-  return buf;
+  for(int i=0, j = counter-1; i<((j+1)/2); i++, j--) {
+    temp = return_ptr[i];
+    return_ptr[i] = return_ptr[j];
+    return_ptr[j] = temp;
+  }
+  return return_ptr;
 }
+
 
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.

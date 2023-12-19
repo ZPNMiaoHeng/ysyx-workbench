@@ -16,35 +16,43 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
 int sprintf(char *out, const char *fmt, ...) {
   va_list ap;
   int d;
-  // char c;
-  char *s;
-  // int return_value;
+  char c;
+  char *s, *ob = out, *int_s;
+  int size=0;
 
+  memset(out, '\0', strlen(out));
+  
   va_start(ap, fmt);
+    while ((c=*fmt++)) {
+      if(c != '%') {
+        *ob++ = c;
+      } 
+      else {
+        c = *(fmt++);
+        switch (c) {
+          case 's':
+            s = va_arg(ap, char *);
+            strcpy(ob, s);
+            ob = ob + strlen(s);
+            size = strlen(out);
+            break;
 
-  while(*fmt)
-    switch (*fmt++) {
-      case 's':
-        memset(out, '\0', 128);
-        s = va_arg(ap, char *);
-        strcpy(out, s);
-        // return_value = sizeof(strcpy(out, s));
-        break;
+          case 'd':
+            d = va_arg(ap, int);
+            int_s = itoa(d, ob);
+            strcpy(ob, int_s);
+            ob = ob + strlen(int_s);
+            break;
+          
+          // case 'c':
+          //   c = (char) va_arg(ap, int);
+          //   break;
+          }
+        }
+      }
 
-      case 'd':
-        memset(out, '\0', 128);
-        d = va_arg(ap, int);   // 如何将d存入out中呢？？？
-        *out = itoa(d);
-        out++;
-/*
-      case 'c':
-        c = (char) va_arg(ap, int);
-        break;
-    */
-    }
   va_end(ap);
-
-  return 0;
+  return size;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {

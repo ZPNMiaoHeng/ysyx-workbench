@@ -31,6 +31,7 @@ void   free      (void *ptr);
 int    abs       (int x);
 int    atoi      (const char *nptr);
 char  *itoa      (int value, char *str);
+// int num_to_str(int num, char *out, int size)
 
 // stdio.h
 int    printf    (const char *format, ...);
