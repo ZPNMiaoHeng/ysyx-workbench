@@ -63,7 +63,6 @@ word_t paddr_read(paddr_t addr, int len) {
     #ifdef CONFIG_MTRACE
     log_write("paddr_read:"FMT_WORD"\t%d\t"FMT_WORD"\n", addr, len, pmem_read(addr, len));
     #endif
-
     return pmem_read(addr, len);
   }
 
@@ -77,7 +76,6 @@ void paddr_write(paddr_t addr, int len, word_t data) {
     #ifdef CONFIG_MTRACE
     log_write("paddr_write:"FMT_WORD"\t%d\t"FMT_WORD"\n", addr, len, data);
     #endif
-    
     pmem_write(addr, len, data); return; 
   }
   IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);

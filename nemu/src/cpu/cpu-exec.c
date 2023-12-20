@@ -64,7 +64,7 @@ void device_update();
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { 
-    log_write("%s\n", _this->logbuf);
+    log_write(ANSI_FMT("%s", ANSI_FG_YELLOW) "\n", _this->logbuf);
     
     #ifdef CONFIG_RINGTRACE_COND
     rb_index = RB_index % NR_RB;
