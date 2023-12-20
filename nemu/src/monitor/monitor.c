@@ -23,6 +23,7 @@ void init_difftest(char *ref_so_file, long img_size, int port);
 void init_device();
 void init_sdb();
 void init_disasm(const char *triple);
+void init_ringbuf();
 
 static void welcome() {
   // Log("Build Options:Debug: %s, Address sanitizer:%s", 
@@ -179,6 +180,7 @@ void init_monitor(int argc, char *argv[]) {
   /* Initialize the simple debugger. */
   init_sdb();
 
+  init_ringbuf(); // TODO - Add to config
   /* Test expr */
   test_expr();
 

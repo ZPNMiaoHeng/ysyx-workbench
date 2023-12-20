@@ -31,11 +31,47 @@ uint64_t g_nr_guest_inst = 0;
 static uint64_t g_timer = 0; // unit: us
 static bool g_print_step = false;
 
+#define NR_RB 32
+typedef struct ringbuf {
+  int NO;
+  char buf[128];
+  char inst_error[15];
+} RB;
+RB ringbuf[NR_RB] = {};
+static int RB_index =0, rb_index=0;  // rb_index = RB_index % 32
+
+void init_ringbuf() {
+  int i;
+  for (i = 0; i < NR_RB; i ++ ) {
+    ringbuf[i].NO = i;
+    memset(ringbuf[i].buf, '\0', sizeof(ringbuf[i].buf));
+    memset(ringbuf[i].inst_error, '\0', sizeof(ringbuf[i].inst_error));
+  }
+}
+
+void trigger_ringbuf() {
+  Log("Find error instruction");
+  int i;
+  for (i = 0; i < NR_RB; i ++ ) {
+    printf("%d\t%s\t%s\n", ringbuf[i].NO, ringbuf[i].inst_error, ringbuf[i].buf);
+  }
+}
+
 void device_update();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
-  if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
+  if (ITRACE_COND) { 
+    log_write("%s\n", _this->logbuf);
+
+    rb_index = RB_index % NR_RB;
+    strcpy(ringbuf[rb_index].buf, _this->logbuf);
+    if(nemu_state.state == NEMU_ABORT) {
+      strcpy(ringbuf[rb_index % NR_RB].inst_error, "--->");
+      trigger_ringbuf();
+    }
+    RB_index ++;
+  }
 #endif
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
@@ -57,7 +93,7 @@ static void exec_once(Decode *s, vaddr_t pc) {
   p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);
   int ilen = s->snpc - s->pc;
   int i;
-  uint8_t *inst = (uint8_t *)&s->isa.inst.val;
+  uint8_t *inst = (uint8_t *)&s->isa.inst.val;  // inst
   for (i = ilen - 1; i >= 0; i --) {
     p += snprintf(p, 4, " %02x", inst[i]);
   }
