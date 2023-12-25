@@ -54,6 +54,7 @@ static void welcome() {
 
 #ifndef CONFIG_TARGET_AM
 #include <getopt.h>
+#include <elf.h>
 
 void sdb_set_batch_mode();
 word_t expr(char *e, bool *success);
@@ -63,6 +64,7 @@ static char *log_file = NULL;
 static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static char *expr_file = NULL;
+static char *elf_file = NULL;
 static int difftest_port = 1234;
 
 static long test_expr() {
@@ -95,6 +97,130 @@ static long test_expr() {
   return 0;
 }
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+static long load_elf() {
+  if(elf_file == NULL) {
+    Log("No elf is given.");
+    return 0;
+  } else {
+    Log("Find elf!");
+  }
+  return 0;
+/*
+  FILE    *fp;
+  size_t  ret;
+  unsigned char   buffer[4];
+  
+  char strtab_buf[1024], shstrtab_buf[1024];
+  Elf32_Ehdr*     ehdr = (Elf32_Ehdr*)malloc(sizeof(Elf32_Ehdr));
+  Elf32_Shdr  shdr[99];
+  Elf32_Sym   sym[99];
+
+  if (ehdr == NULL) {
+      perror("malloc");
+      return EXIT_FAILURE;
+  }
+  fp = fopen(elf_file, "rb");
+  if (!fp) {
+      perror("fopen");
+      return EXIT_FAILURE;
+  }
+  
+  ret = fread(buffer, sizeof(*buffer), ARRAY_SIZE(buffer), fp);
+  if(ret != ARRAY_SIZE(buffer)) {
+      fprintf(stderr, "fread() failed: %zu\n, ret");
+      exit(EXIT_FAILURE);
+  }
+
+  printf("PASS ELF magic: %#04x%02x%02x%02x\n", buffer[0], buffer[1],
+          buffer[2], buffer[3]);
+
+  // ELF Header
+  printf("\n");
+  fseek(fp, 0, SEEK_SET);
+  ret = fread(ehdr, sizeof(Elf32_Ehdr), 1, fp);
+  if(ret != 1) {
+      fprintf(stderr, "fread() failed: %zu\n", ret);
+      exit(EXIT_FAILURE);
+  }
+  printf("ELF Header:\n");
+  printf("Magic:\t");
+  for(int i = 0; i < EI_NIDENT; i++) {
+      printf("%02x ", ehdr->e_ident[i]);
+      if(i == EI_NIDENT-1) {
+          printf("\n");
+      }
+  }
+  if(ehdr->e_shnum > 99) {
+      perror("ehdr->e_shnum is too small, please modify!");
+      return EXIT_FAILURE;
+  }
+
+  printf("\nSection Headers:\n");
+  fseek(fp, ehdr->e_shoff, SEEK_SET);
+  ret = fread(shdr, sizeof(Elf32_Shdr), ehdr->e_shnum, fp);
+  if(ret != ehdr->e_shnum) {
+      fprintf(stderr, "fread() failed: %zu\n", ret);
+      exit(EXIT_FAILURE);
+  }
+  
+  fseek(fp, shdr[ehdr->e_shstrndx].sh_offset, SEEK_SET);
+  ret = fread(shstrtab_buf, shdr[ehdr->e_shstrndx].sh_size, 1, fp);
+  if(ret != 1) {
+      fprintf(stderr, "fread() failed: %zu\n", ret);
+      exit(EXIT_FAILURE);
+  }
+  
+  static int symtab_index = 0, symtab_entry = 0, strtab_index = 0;
+  printf("[Nr]\tName\t\t\tType\t\tAddr\t\tOff\tSize\tES\tFlg\tLk\tInf\tAl\n");
+  for(int i = 0; i < ehdr->e_shnum; i++) {
+      printf("[%d]\t%-16s\t%-8d\t%-10x\t%x\t%x\t%d\t%d\t%d\t%d\t%d\t\n", 
+      i, &shstrtab_buf[shdr[i].sh_name], shdr[i].sh_type, shdr[i].sh_addr, shdr[i].sh_offset, shdr[i].sh_size, 
+      shdr[i].sh_entsize, shdr[i].sh_flags, shdr[i].sh_link, shdr[i].sh_info, shdr[i].sh_addralign);
+
+      if(strcmp(&shstrtab_buf[shdr[i].sh_name], ".symtab") == 0) {
+          symtab_index = i;
+          // printf("Find shstrtab_buf:%d\t%x\n", i, shdr[i].sh_offset);
+      } else if (strcmp(&shstrtab_buf[shdr[i].sh_name], ".strtab") == 0) {
+          strtab_index = i;
+          // printf("Find shstrtab_buf:%d\t%x\n", i, shdr[i].sh_offset);
+      }
+  }
+
+  symtab_entry = shdr[symtab_index].sh_size / sizeof(Elf32_Sym);
+  printf("\nSymbol table '.symtab' contains %d entries:\n", symtab_entry); //FIXME-
+  
+  fseek(fp, shdr[strtab_index].sh_offset, SEEK_SET);
+  ret = fread(strtab_buf, shdr[strtab_index].sh_size, 1, fp);
+  if(ret != 1) {
+      fprintf(stderr, "fread() failed: %zu\n", ret);
+      exit(EXIT_FAILURE);
+  }
+  
+  fseek(fp, shdr[symtab_index].sh_offset, SEEK_SET);
+  ret = fread(sym, sizeof(Elf32_Sym), symtab_entry, fp);
+  if(ret != symtab_entry) {
+      fprintf(stderr, "fread() failed: %zu\n", ret);
+      exit(EXIT_FAILURE);
+  }
+  printf("Num:\tValue\t\tSize\tType\tBind\tVis\tNdx\tName\n");
+  for(int i = 0; i < symtab_entry; i ++) {
+      if((sym[i].st_info & 0xf) == STT_FUNC) {
+          printf("%-2d:\t%-8x\t%d\t%d\t%d\t%d\t%d\t%s\n", i,
+          sym[i].st_value, sym[i].st_size, sym[i].st_info &0xf, (sym[i].st_info>>4) &0x1, 
+          sym[i].st_other, sym[i].st_shndx, &strtab_buf[sym[i].st_name]);
+      }
+  }
+
+  free(ehdr);
+
+  fclose(fp);
+
+  exit(EXIT_SUCCESS);
+*/
+}
+
 static long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
@@ -124,17 +250,19 @@ static int parse_args(int argc, char *argv[]) {
     {"diff"     , required_argument, NULL, 'd'},
     {"port"     , required_argument, NULL, 'p'},
     {"expr"     , required_argument, NULL, 'e'},
+    {"elf"      , required_argument, NULL, 'f'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:f:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
       case 'l': log_file = optarg; break;
       case 'd': diff_so_file = optarg; break;
       case 'e': expr_file = optarg; break;
+      case 'f': elf_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -181,8 +309,12 @@ void init_monitor(int argc, char *argv[]) {
   init_sdb();
 
   init_ringbuf(); // TODO - Add to config
+  
   /* Test expr */
   test_expr();
+
+  /* elf!!*/
+  load_elf();
 
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(
