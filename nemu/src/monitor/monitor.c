@@ -103,11 +103,8 @@ static long load_elf() {
   if(elf_file == NULL) {
     Log("No elf is given.");
     return 0;
-  } else {
-    Log("Find elf!");
-  }
-  return 0;
-/*
+  } 
+
   FILE    *fp;
   size_t  ret;
   unsigned char   buffer[4];
@@ -129,7 +126,7 @@ static long load_elf() {
   
   ret = fread(buffer, sizeof(*buffer), ARRAY_SIZE(buffer), fp);
   if(ret != ARRAY_SIZE(buffer)) {
-      fprintf(stderr, "fread() failed: %zu\n, ret");
+      fprintf(stderr, "fread() failed: %zu\n", ret);
       exit(EXIT_FAILURE);
   }
 
@@ -218,7 +215,7 @@ static long load_elf() {
   fclose(fp);
 
   exit(EXIT_SUCCESS);
-*/
+
 }
 
 static long load_img() {
