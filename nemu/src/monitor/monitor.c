@@ -55,10 +55,11 @@ static void welcome() {
 #ifndef CONFIG_TARGET_AM
 #include <getopt.h>
 #include <elf.h>
+#include <cpu/decode.h>
 
 void sdb_set_batch_mode();
 word_t expr(char *e, bool *success);
-
+void ftrace(Decode *s);
 
 static char *log_file = NULL;
 static char *diff_so_file = NULL;
@@ -66,6 +67,17 @@ static char *img_file = NULL;
 static char *expr_file = NULL;
 static char *elf_file = NULL;
 static int difftest_port = 1234;
+
+typedef struct SYM_Func {
+  char st_name[99];
+  Elf32_Addr st_value;
+  Elf32_Word st_size; 
+} SYM_Func;
+
+#define SYM_FUNC 32
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+SYM_Func sym_func[SYM_FUNC];
+int func_num = 0;
 
 static long test_expr() {
   if(expr_file == NULL) {
@@ -97,7 +109,6 @@ static long test_expr() {
   return 0;
 }
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
 static long load_elf() {
   if(elf_file == NULL) {
@@ -113,15 +124,6 @@ static long load_elf() {
   Elf32_Ehdr*     ehdr = (Elf32_Ehdr*)malloc(sizeof(Elf32_Ehdr));
   Elf32_Shdr  shdr[99];
   Elf32_Sym   sym[99];
-  
-  #define SYM_FUNC 32
-  typedef struct
-  {
-    char st_name[99];
-    Elf32_Addr st_value;
-    Elf32_Word st_size; 
-  } SYM_Func;
-  static SYM_Func sym_func[SYM_FUNC];
 
   if (ehdr == NULL) {
       perror("malloc");
@@ -211,28 +213,63 @@ static long load_elf() {
       exit(EXIT_FAILURE);
   }
   printf("Num:\tValue\t\tSize\tType\tBind\tVis\tNdx\tName\n");
-  for(int i = 0, j = 0; i < symtab_entry; i ++) {
+static  int j = 0;
+  for(int i = 0; i < symtab_entry; i ++) {
       if((sym[i].st_info & 0xf) == STT_FUNC) {
           strcpy(sym_func[j].st_name, &strtab_buf[sym[i].st_name]);
           sym_func[j].st_value = sym[i].st_value;
           sym_func[j].st_size = sym[i].st_size;
 
-          printf("%-2d:\t%-8x\t%d\t%d\t%d\t%d\t%d\t%s\n", i,
-          sym[i].st_value, sym[i].st_size, sym[i].st_info &0xf, (sym[i].st_info>>4) &0x1, 
-          sym[i].st_other, sym[i].st_shndx, &strtab_buf[sym[i].st_name]);
-
-          printf("%-2d:\t%-8x\t%x\t%s\n", j,
-          sym_func[j].st_value, sym_func[j].st_size, sym_func[j].st_name);
+          // printf("%-2d:\t%-8x\t%d\t%d\t%d\t%d\t%d\t%s\n", i,
+          // sym[i].st_value, sym[i].st_size, sym[i].st_info &0xf, (sym[i].st_info>>4) &0x1, 
+          // sym[i].st_other, sym[i].st_shndx, &strtab_buf[sym[i].st_name]);
+          
           j ++;
-
       }
   }
+  printf("\n");
+  func_num = j;
 
+  for(int i = 0; i < func_num; i ++) {
+    printf("%-2d:\t%-8x\t%x\t%s\n", i,
+    sym_func[i].st_value, sym_func[i].st_size, sym_func[i].st_name);
+  }
+  // printf("func_num = %d\n", func_num);
   free(ehdr);
 
   fclose(fp);
 
-  exit(EXIT_SUCCESS);
+  return 0;
+
+}
+
+void ftrace(Decode *s) {
+// #ifdef CONFIG_FTRACE
+  int func_index_cur = 0, func_index_next = 0;
+  for(int i = 0; i < func_num; i ++) {
+    if((s->pc >= sym_func[i].st_value) && (s->pc < (sym_func[i].st_value + sym_func[i].st_size))) {
+      func_index_cur = i;
+    }
+  }
+  
+  for(int j = 0; j < func_num; j ++) {
+    if((s->dnpc >= sym_func[j].st_value) && (s->dnpc < (sym_func[j].st_value + sym_func[j].st_size))) {
+      func_index_next = j;
+    }
+  }
+  
+  for(int i = 0; i < func_num; i ++) {
+    if(s->dnpc == sym_func[i].st_value) {
+        printf("%#x: Call [%s@%#x]\n", s->pc, sym_func[func_index_next].st_name, s->dnpc);
+    }
+  }
+  
+  if(func_index_cur != func_index_next) {
+    printf("%#x: ret [%s]\n", s->pc, sym_func[func_index_cur].st_name);
+  }
+
+  printf("%d:%x\t%d:%x\n", func_index_cur, s->pc, func_index_next, s->dnpc);
+// #endif
 
 }
 

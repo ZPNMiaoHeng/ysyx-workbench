@@ -41,6 +41,8 @@ RB ringbuf[NR_RB] = {};
 #ifdef CONFIG_RINGTRACE_COND
 static int RB_index =0, rb_index=0;  // rb_index = RB_index % 32
 #endif
+void ftrace(Decode *s);
+
 
 void init_ringbuf() {
   int i;
@@ -92,6 +94,11 @@ static void exec_once(Decode *s, vaddr_t pc) {
   s->snpc = pc;
   isa_exec_once(s);
   cpu.pc = s->dnpc;
+
+// #ifdef CONFIG_FTRACE
+  ftrace(s);
+// #endif
+
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;
   p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);
