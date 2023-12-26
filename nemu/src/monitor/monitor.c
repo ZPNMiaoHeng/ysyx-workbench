@@ -113,6 +113,15 @@ static long load_elf() {
   Elf32_Ehdr*     ehdr = (Elf32_Ehdr*)malloc(sizeof(Elf32_Ehdr));
   Elf32_Shdr  shdr[99];
   Elf32_Sym   sym[99];
+  
+  #define SYM_FUNC 32
+  typedef struct
+  {
+    char st_name[99];
+    Elf32_Addr st_value;
+    Elf32_Word st_size; 
+  } SYM_Func;
+  static SYM_Func sym_func[SYM_FUNC];
 
   if (ehdr == NULL) {
       perror("malloc");
@@ -202,11 +211,20 @@ static long load_elf() {
       exit(EXIT_FAILURE);
   }
   printf("Num:\tValue\t\tSize\tType\tBind\tVis\tNdx\tName\n");
-  for(int i = 0; i < symtab_entry; i ++) {
+  for(int i = 0, j = 0; i < symtab_entry; i ++) {
       if((sym[i].st_info & 0xf) == STT_FUNC) {
+          strcpy(sym_func[j].st_name, &strtab_buf[sym[i].st_name]);
+          sym_func[j].st_value = sym[i].st_value;
+          sym_func[j].st_size = sym[i].st_size;
+
           printf("%-2d:\t%-8x\t%d\t%d\t%d\t%d\t%d\t%s\n", i,
           sym[i].st_value, sym[i].st_size, sym[i].st_info &0xf, (sym[i].st_info>>4) &0x1, 
           sym[i].st_other, sym[i].st_shndx, &strtab_buf[sym[i].st_name]);
+
+          printf("%-2d:\t%-8x\t%x\t%s\n", j,
+          sym_func[j].st_value, sym_func[j].st_size, sym_func[j].st_name);
+          j ++;
+
       }
   }
 
