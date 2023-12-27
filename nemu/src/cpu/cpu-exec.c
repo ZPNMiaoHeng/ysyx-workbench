@@ -95,9 +95,9 @@ static void exec_once(Decode *s, vaddr_t pc) {
   isa_exec_once(s);
   cpu.pc = s->dnpc;
 
-// #ifdef CONFIG_FTRACE
+#ifdef CONFIG_FTRACE
   ftrace(s);
-// #endif
+#endif
 
 #ifdef CONFIG_ITRACE
   char *p = s->logbuf;

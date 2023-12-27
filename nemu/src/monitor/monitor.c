@@ -36,12 +36,14 @@ static void welcome() {
   // );
   // Log("Build Options:\tDebug\tAddress sanitizer\tTrace\tWatchpoint\t");
   // Log("State:\t\t%s\t%s\t\t\t%s\t%s\t",
-  Log("Debug\tAddress sanitizer\tTrace\tWatchpoint\t");
-  Log("%s\t\t%s\t\t\t%s\t%s\t",
+  Log("Debug\tAddress sanitizer\tTrace\tWatchpoint\tmtrace\tftrace\t");
+  Log("%s\t\t%s\t\t\t%s\t%s\t\t%s\t%s\t",
     MUXDEF(CONFIG_CC_DEBUG, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_CC_ASAN, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-    MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+    MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_MTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_FTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
   );
 
   IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
@@ -98,9 +100,7 @@ static long test_expr() {
     
     expr_result = expr(buf, success);
 
-    // printf("%s\t%d\n", result, expr_result);
     printf("%d\t%d\n", atoi(result), expr_result);
-    // Assert(atoi(result) != expr_result, "expr error result");
     assert(atoi(result) == expr_result);
   }
   
