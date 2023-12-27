@@ -77,7 +77,7 @@ typedef struct SYM_Func {
 #define SYM_FUNC 32
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 SYM_Func sym_func[SYM_FUNC];
-int func_num = 0;
+int func_num = 0, _start_index = 0;
 
 static long test_expr() {
   if(expr_file == NULL) {
@@ -233,6 +233,10 @@ static  int j = 0;
   for(int i = 0; i < func_num; i ++) {
     printf("%-2d:\t%-8x\t%x\t%s\n", i,
     sym_func[i].st_value, sym_func[i].st_size, sym_func[i].st_name);
+    if(strcmp(sym_func[i].st_name, "_start") == 0) {
+      _start_index = i;
+      // printf("Find _start index:%d\n", _start_index);
+    }
   }
   // printf("func_num = %d\n", func_num);
   free(ehdr);
@@ -243,9 +247,10 @@ static  int j = 0;
 
 }
 
+static int null_counter =0;
 void ftrace(Decode *s) {
-// #ifdef CONFIG_FTRACE
-  int func_index_cur = 0, func_index_next = 0;
+  int func_index_cur = _start_index, func_index_next = _start_index;
+
   for(int i = 0; i < func_num; i ++) {
     if((s->pc >= sym_func[i].st_value) && (s->pc < (sym_func[i].st_value + sym_func[i].st_size))) {
       func_index_cur = i;
@@ -257,18 +262,24 @@ void ftrace(Decode *s) {
       func_index_next = j;
     }
   }
-  
-  for(int i = 0; i < func_num; i ++) {
-    if(s->dnpc == sym_func[i].st_value) {
-        printf("%#x: Call [%s@%#x]\n", s->pc, sym_func[func_index_next].st_name, s->dnpc);
+
+  if(func_index_cur != func_index_next) {
+    printf("%#x:", s->pc);
+    if(s->dnpc == sym_func[func_index_next].st_value) {
+      null_counter++;
+      for(int i = 0; i < null_counter; i++) {
+        printf(" ");
+      }
+      printf("call [%s@%#x]\n", sym_func[func_index_next].st_name, s->dnpc);
+    } else {
+      for(int i = 0; i < null_counter; i++) {
+        printf(" ");
+      }
+      null_counter --;
+      printf("ret [%s]\n", sym_func[func_index_cur].st_name);
     }
   }
-  
-  if(func_index_cur != func_index_next) {
-    printf("%#x: ret [%s]\n", s->pc, sym_func[func_index_cur].st_name);
-  }
-
-  printf("%d:%x\t%d:%x\n", func_index_cur, s->pc, func_index_next, s->dnpc);
+  // printf("%d:%x\t%d:%x\n", func_index_cur, s->pc, func_index_next, s->dnpc);
 // #endif
 
 }
