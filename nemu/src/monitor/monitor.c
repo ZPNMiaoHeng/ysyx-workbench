@@ -114,8 +114,8 @@ static long load_elf() {
   if(elf_file == NULL) {
     Log("No elf is given.");
     return 0;
-  } 
-
+  }
+  
   FILE    *fp;
   size_t  ret;
   unsigned char   buffer[4];
@@ -134,6 +134,7 @@ static long load_elf() {
       perror("fopen");
       return EXIT_FAILURE;
   }
+  Log("The elf file is %s", elf_file);
   
   ret = fread(buffer, sizeof(*buffer), ARRAY_SIZE(buffer), fp);
   if(ret != ARRAY_SIZE(buffer)) {
@@ -141,31 +142,33 @@ static long load_elf() {
       exit(EXIT_FAILURE);
   }
 
-  printf("PASS ELF magic: %#04x%02x%02x%02x\n", buffer[0], buffer[1],
+  if((buffer[0] != 0x7f) | (buffer[1] != 'E') | (buffer[2] != 'L') | (buffer[3] != 'F')) {
+    Assert(0, "ELF file magic is error! PASS ELF magic: %#04x%02x%02x%02x\n", buffer[0], buffer[1],
           buffer[2], buffer[3]);
+  }
 
   // ELF Header
-  printf("\n");
+  // printf("\n");
   fseek(fp, 0, SEEK_SET);
   ret = fread(ehdr, sizeof(Elf32_Ehdr), 1, fp);
   if(ret != 1) {
       fprintf(stderr, "fread() failed: %zu\n", ret);
       exit(EXIT_FAILURE);
   }
-  printf("ELF Header:\n");
-  printf("Magic:\t");
-  for(int i = 0; i < EI_NIDENT; i++) {
-      printf("%02x ", ehdr->e_ident[i]);
-      if(i == EI_NIDENT-1) {
-          printf("\n");
-      }
-  }
+  // printf("ELF Header:\n");
+  // printf("Magic:\t");
+  // for(int i = 0; i < EI_NIDENT; i++) {
+  //     // printf("%02x ", ehdr->e_ident[i]);
+  //     if(i == EI_NIDENT-1) {
+  //         // printf("\n");
+  //     }
+  // }
   if(ehdr->e_shnum > 99) {
       perror("ehdr->e_shnum is too small, please modify!");
       return EXIT_FAILURE;
   }
 
-  printf("\nSection Headers:\n");
+  // printf("\nSection Headers:\n");
   fseek(fp, ehdr->e_shoff, SEEK_SET);
   ret = fread(shdr, sizeof(Elf32_Shdr), ehdr->e_shnum, fp);
   if(ret != ehdr->e_shnum) {
@@ -181,11 +184,11 @@ static long load_elf() {
   }
   
   static int symtab_index = 0, symtab_entry = 0, strtab_index = 0;
-  printf("[Nr]\tName\t\t\tType\t\tAddr\t\tOff\tSize\tES\tFlg\tLk\tInf\tAl\n");
+  // printf("[Nr]\tName\t\t\tType\t\tAddr\t\tOff\tSize\tES\tFlg\tLk\tInf\tAl\n");
   for(int i = 0; i < ehdr->e_shnum; i++) {
-      printf("[%d]\t%-16s\t%-8d\t%-10x\t%x\t%x\t%d\t%d\t%d\t%d\t%d\t\n", 
-      i, &shstrtab_buf[shdr[i].sh_name], shdr[i].sh_type, shdr[i].sh_addr, shdr[i].sh_offset, shdr[i].sh_size, 
-      shdr[i].sh_entsize, shdr[i].sh_flags, shdr[i].sh_link, shdr[i].sh_info, shdr[i].sh_addralign);
+      // printf("[%d]\t%-16s\t%-8d\t%-10x\t%x\t%x\t%d\t%d\t%d\t%d\t%d\t\n", 
+      // i, &shstrtab_buf[shdr[i].sh_name], shdr[i].sh_type, shdr[i].sh_addr, shdr[i].sh_offset, shdr[i].sh_size, 
+      // shdr[i].sh_entsize, shdr[i].sh_flags, shdr[i].sh_link, shdr[i].sh_info, shdr[i].sh_addralign);
 
       if(strcmp(&shstrtab_buf[shdr[i].sh_name], ".symtab") == 0) {
           symtab_index = i;
@@ -197,7 +200,7 @@ static long load_elf() {
   }
 
   symtab_entry = shdr[symtab_index].sh_size / sizeof(Elf32_Sym);
-  printf("\nSymbol table '.symtab' contains %d entries:\n", symtab_entry); //FIXME-
+  // printf("\nSymbol table '.symtab' contains %d entries:\n", symtab_entry);
   
   fseek(fp, shdr[strtab_index].sh_offset, SEEK_SET);
   ret = fread(strtab_buf, shdr[strtab_index].sh_size, 1, fp);
@@ -212,7 +215,7 @@ static long load_elf() {
       fprintf(stderr, "fread() failed: %zu\n", ret);
       exit(EXIT_FAILURE);
   }
-  printf("Num:\tValue\t\tSize\tType\tBind\tVis\tNdx\tName\n");
+  // printf("Num:\tValue\t\tSize\tType\tBind\tVis\tNdx\tName\n");
 static  int j = 0;
   for(int i = 0; i < symtab_entry; i ++) {
       if((sym[i].st_info & 0xf) == STT_FUNC) {
@@ -227,12 +230,12 @@ static  int j = 0;
           j ++;
       }
   }
-  printf("\n");
+  // printf("\n");
   func_num = j;
 
   for(int i = 0; i < func_num; i ++) {
-    printf("%-2d:\t%-8x\t%x\t%s\n", i,
-    sym_func[i].st_value, sym_func[i].st_size, sym_func[i].st_name);
+    // printf("%-2d:\t%-8x\t%x\t%s\n", i,
+    // sym_func[i].st_value, sym_func[i].st_size, sym_func[i].st_name);
     if(strcmp(sym_func[i].st_name, "_start") == 0) {
       _start_index = i;
       // printf("Find _start index:%d\n", _start_index);
@@ -279,7 +282,6 @@ void ftrace(Decode *s) {
       printf("ret [%s]\n", sym_func[func_index_cur].st_name);
     }
   }
-  // printf("%d:%x\t%d:%x\n", func_index_cur, s->pc, func_index_next, s->dnpc);
 // #endif
 
 }
