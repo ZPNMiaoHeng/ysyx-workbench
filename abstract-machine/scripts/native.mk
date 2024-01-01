@@ -12,6 +12,10 @@ AM_SRCS := native/trm.c \
            native/ioe/disk.c \
 
 CFLAGS  += -fpie
+CFLAGS  +=  -Og -ggdb3
+# CFLAGS += $(if $(CONFIG_CC_DEBUG),-Og -ggdb3,)
+# CFLAGS += $(if $(CONFIG_CC_ASAN),-fsanitize=address,)
+
 ASFLAGS += -fpie -pie
 comma = ,
 LDFLAGS_CXX = $(addprefix -Wl$(comma), $(LDFLAGS))
@@ -24,4 +28,5 @@ run: image
 	$(IMAGE)
 
 gdb: image
-	gdb -ex "handle SIGUSR1 SIGUSR2 SIGSEGV noprint nostop" $(IMAGE)
+	gdb $(IMAGE)
+	# gdb -ex "handle SIGUSR1 SIGUSR2 SIGSEGV noprint nostop" $(IMAGE)

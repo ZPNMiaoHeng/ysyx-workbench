@@ -48,6 +48,42 @@ char *itoa(int value, char *str) {
   return return_ptr;
 }
 
+// void *itoa(int value, char *str) {
+//   char temp;
+//   int counter=0;
+//   char *return_ptr = str;
+
+//   do {
+//     counter++;
+//     *str++ = value % 10 + '0';
+//   } while((value /= 10) > 0);
+
+//   for(int i=0, j = counter-1; i<((j+1)/2); i++, j--) {
+//     temp = return_ptr[i];
+//     return_ptr[i] = return_ptr[j];
+//     return_ptr[j] = temp;
+//   }
+//   return 0;
+//   // return return_ptr;
+// }
+
+
+// void itoa(unsigned int n, char * buf) {
+//   int i;
+        
+//   if(n < 10)  {
+//     buf[0] = n + '0';
+//     buf[1] = '\0';
+//     return;
+//   }
+//   itoa(n / 10, buf);
+
+//   for(i=0; buf[i]!='\0'; i++);
+        
+//   buf[i] = (n % 10) + '0';
+        
+//   buf[i+1] = '\0';
+// }
 
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
