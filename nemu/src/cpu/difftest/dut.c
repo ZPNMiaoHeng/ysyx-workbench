@@ -21,15 +21,7 @@
 #include <utils.h>
 #include <difftest-def.h>
 
-// void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction);
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) = NULL;
-// void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction) {
-//   if ( direction == DIFFTEST_TO_REF) {
-//     /* code */
-//   } else {
-//     Assret(0, "please choose true direction!");
-//   }
-// }
 void (*ref_difftest_regcpy)(void *dut, bool direction) = NULL;
 void (*ref_difftest_exec)(uint64_t n) = NULL;
 void (*ref_difftest_raise_intr)(uint64_t NO) = NULL;
@@ -71,10 +63,10 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   assert(ref_so_file != NULL);
 
   void *handle;
-  handle = dlopen(ref_so_file, RTLD_LAZY);
+  handle = dlopen(ref_so_file, RTLD_LAZY);   
   assert(handle);
 
-  ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");
+  ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");    //* 通过使用dlsym获取difftest库中对应函数，在本地使用；
   assert(ref_difftest_memcpy);
 
   ref_difftest_regcpy = dlsym(handle, "difftest_regcpy");
