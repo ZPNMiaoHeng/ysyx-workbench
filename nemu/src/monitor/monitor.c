@@ -26,29 +26,21 @@ void init_disasm(const char *triple);
 void init_ringbuf();
 
 static void welcome() {
-  // Log("Build Options:Debug: %s, Address sanitizer:%s", 
-  //   MUXDEF(CONFIG_CC_DEBUG, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-  //   MUXDEF(CONFIG_CC_ASAN, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
-  // );
-  // Log("Trace: %s, Watchpoint:%s", 
-  //   MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-  //   MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
-  // );
-  // Log("Build Options:\tDebug\tAddress sanitizer\tTrace\tWatchpoint\t");
-  // Log("State:\t\t%s\t%s\t\t\t%s\t%s\t",
-  Log("Debug\tAddress sanitizer\tTrace\tWatchpoint\tmtrace\tftrace\t");
-  Log("%s\t\t%s\t\t\t%s\t%s\t\t%s\t%s\t",
+  Log("Debug\tAddress sanitizer\tTrace\tITrace\tWatchpoint\tMTrace\tFTrace\tDifftest\t");
+  Log("%s\t\t%s\t\t\t%s\t%s\t%s\t\t%s\t%s\t%s\t",
     MUXDEF(CONFIG_CC_DEBUG, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_CC_ASAN, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_RINGTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_MTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-    MUXDEF(CONFIG_FTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+    MUXDEF(CONFIG_FTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_DIFFTEST, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
   );
 
-  IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
-        "to record the trace. This may lead to a large log file. "
-        "If it is not necessary, you can disable it in menuconfig"));
+  // IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
+  //       "to record the trace. This may lead to a large log file. "
+  //       "If it is not necessary, you can disable it in menuconfig"));
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");

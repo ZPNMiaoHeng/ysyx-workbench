@@ -67,21 +67,22 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_ITRACE_COND
   if (ITRACE_COND) { 
     log_write(ANSI_FMT("%s", ANSI_FG_YELLOW) "\n", _this->logbuf);
-    
-    #ifdef CONFIG_RINGTRACE_COND
-    rb_index = RB_index % NR_RB;
-    strcpy(ringbuf[rb_index].buf, _this->logbuf);
-    if(nemu_state.state == NEMU_ABORT) {
-      strcpy(ringbuf[rb_index % NR_RB].inst_error, "--->");
-      trigger_ringbuf();
-    }
-    RB_index ++;
-    #endif
   }
 #endif
+  
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 
+#ifdef CONFIG_RINGTRACE_COND
+  rb_index = RB_index % NR_RB;
+  strcpy(ringbuf[rb_index].buf, _this->logbuf);
+  if(nemu_state.state == NEMU_ABORT) {
+    strcpy(ringbuf[rb_index % NR_RB].inst_error, "--->");
+    trigger_ringbuf();
+  }
+  RB_index ++;
+#endif
+    
 #ifdef CONFIG_WATCHPOINT_COND
   if(watchpoint_checkout() == false) {
     nemu_state.state = NEMU_STOP;
