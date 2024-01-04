@@ -68,7 +68,7 @@ typedef struct SYM_Func {
   Elf32_Word st_size; 
 } SYM_Func;
 
-#define SYM_FUNC 32
+#define SYM_FUNC 32*16
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 SYM_Func sym_func[SYM_FUNC];
 int func_num = 0, _start_index = 0;
@@ -101,7 +101,6 @@ static long test_expr() {
   return 0;
 }
 
-
 static long load_elf() {
   if(elf_file == NULL) {
     Log("No elf is given.");
@@ -112,10 +111,10 @@ static long load_elf() {
   size_t  ret;
   unsigned char   buffer[4];
   
-  char strtab_buf[1024], shstrtab_buf[1024];
+  char strtab_buf[1024*16], shstrtab_buf[1024*16];
   Elf32_Ehdr*     ehdr = (Elf32_Ehdr*)malloc(sizeof(Elf32_Ehdr));
-  Elf32_Shdr  shdr[99];
-  Elf32_Sym   sym[99];
+  Elf32_Shdr  shdr[99*16];
+  Elf32_Sym   sym[99*16];
 
   if (ehdr == NULL) {
       perror("malloc");

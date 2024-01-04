@@ -6,17 +6,18 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int printf(const char *fmt, ...) {
-  // panic("printf Not implemented");
+  char buf[5000];
+  va_list ap;
+  int ret = -1;
+  va_start(ap, fmt);
+  ret = vsprintf(buf, fmt, ap);
+  va_end(ap);
 
-  char buffer[1024];
-  va_list arg;
-  va_start(arg, fmt);
-
-  int done = vsprintf(buffer, fmt, arg);  // 将格式化的内容(字符串)保存在buffer中
-  putstr(buffer);
-
-  va_end(arg);
-  return done;
+  for (const char *p = buf; *p; p++) {
+    putch(*p);
+  }
+  return ret ;
+  // panic("Not implemented");
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {

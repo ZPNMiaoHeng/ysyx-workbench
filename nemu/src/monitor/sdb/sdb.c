@@ -63,10 +63,8 @@ static int cmd_si(char *args){
 
   if(step == 0) {
     cpu_exec(1);
-  } else if(step > 0 && step < 11) {
+  } else if(step > 0) {  //MAX_INST_TO_PRINT = 10, >=10 不会打印执行信息
     cpu_exec(step);
-  } else {
-    Log("NEMU sdb only support 10 step!");
   }
   return 0;
 }
