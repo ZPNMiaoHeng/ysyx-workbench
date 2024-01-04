@@ -21,7 +21,7 @@ int printf(const char *fmt, ...) {
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
-  char ch, *s = out, *str, buf[128], digit[16];
+  char ch, *s = out, *str, buf[128], digit[16], c;
   int num = 0, n;
   // word_t ln;
   memset(buf, 0, sizeof(buf));
@@ -63,10 +63,10 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           */
           break;
         case 'c':
-          n = va_arg(ap, int);
-          itoa(n, buf);
-					memcpy(s, buf, 1);
-          s ++;
+          c = (char)va_arg(ap, int);
+          // itoa(n, buf);
+					// memcpy(s, buf, 1);
+          *s ++ = c;
           num ++;
           break;
         case 'l':
