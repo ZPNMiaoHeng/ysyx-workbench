@@ -29,61 +29,44 @@ int atoi(const char* nptr) {
   return x;
 }
 
-// * 实现简单十进制数字转换
-char *itoa(int value, char *str) {
-  char temp;
-  int counter=0;
-  char *return_ptr = str;
+static int
+mini_itoa(long value, unsigned int radix, int uppercase, int unsig,char *buffer) {
+
+  char *pbuffer = buffer;
+  int negative = 0;
+  int i, len;
+
+  if (radix > 16) return 0;
+
+  if (value < 0 && !unsig) {
+    negative = 1;
+    value = -value;
+  }
 
   do {
-    counter++;
-    *str++ = value % 10 + '0';
-  } while((value /= 10) > 0);
+    int digit = value % radix;
+    *(pbuffer++) = (digit < 10 ? '0' + digit : (uppercase ? 'A' : 'a') + digit - 10);
+    value /= radix;
+  } while (value > 0);
 
-  for(int i=0, j = counter-1; i<((j+1)/2); i++, j--) {
-    temp = return_ptr[i];
-    return_ptr[i] = return_ptr[j];
-    return_ptr[j] = temp;
+  if (negative)
+    *(pbuffer++) = '-';
+
+  *(pbuffer) = '\0';
+
+  len = (pbuffer - buffer);
+  for (i = 0; i < len / 2; i++) {
+    char j = buffer[i];
+    buffer[i] = buffer[len-i-1];
+    buffer[len-i-1] = j;
   }
-  return return_ptr;
+
+  return len;
 }
 
-// void *itoa(int value, char *str) {
-//   char temp;
-//   int counter=0;
-//   char *return_ptr = str;
-
-//   do {
-//     counter++;
-//     *str++ = value % 10 + '0';
-//   } while((value /= 10) > 0);
-
-//   for(int i=0, j = counter-1; i<((j+1)/2); i++, j--) {
-//     temp = return_ptr[i];
-//     return_ptr[i] = return_ptr[j];
-//     return_ptr[j] = temp;
-//   }
-//   return 0;
-//   // return return_ptr;
-// }
-
-
-// void itoa(unsigned int n, char * buf) {
-//   int i;
-        
-//   if(n < 10)  {
-//     buf[0] = n + '0';
-//     buf[1] = '\0';
-//     return;
-//   }
-//   itoa(n / 10, buf);
-
-//   for(i=0; buf[i]!='\0'; i++);
-        
-//   buf[i] = (n % 10) + '0';
-        
-//   buf[i+1] = '\0';
-// }
+void itoa(const int n, char *buf) {
+  mini_itoa(n, 10, 1, 0, buf);
+}
 
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.

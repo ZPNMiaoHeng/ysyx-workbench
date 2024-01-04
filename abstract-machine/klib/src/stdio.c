@@ -6,143 +6,172 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 
 int printf(const char *fmt, ...) {
-  // va_list ap;
-  // va_start(ap, fmt);
-  // char buffer[100];
+  // panic("printf Not implemented");
 
-  // int size = sprintf(buffer, *fmt, ...);
-  panic("printf Not implemented");
+  char buffer[1024];
+  va_list arg;
+  va_start(arg, fmt);
+
+  int done = vsprintf(buffer, fmt, arg);  // 将格式化的内容(字符串)保存在buffer中
+  putstr(buffer);
+
+  va_end(arg);
+  return done;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap) {
-  panic("Not implemented");
+  char ch, *s = out, *str, buf[128], digit[16];
+  int num = 0, n;
+  // word_t ln;
+  memset(buf, 0, sizeof(buf));
+  memset(digit, 0, sizeof(digit));
+    
+	while( (ch = *(fmt++))){
+		if(ch != '%'){
+			*s++ = ch;
+      num++;
+		}else{
+			ch = *(fmt++);
+			switch(ch){
+				case 'd':
+          n = va_arg(ap, int);
+					if(n < 0){
+						*s++ = '-';
+						n = -n;
+            num++;
+					}
+					itoa(n, buf);
+          memcpy(s, buf, strlen(buf));
+          s += strlen(buf);
+          num += strlen(buf);
+					break;
+				case 's':
+					str = va_arg(ap, char *);
+					memcpy(s, str, strlen(str));
+          s += strlen(str);
+          num += strlen(str);
+					break;
+        case 'x':
+          panic("vsprintf don't support! 'x'\n");
+          /*
+          n = va_arg(ap, int);
+          xtoa(n, buf);
+          memcpy(s, buf, strlen(buf));
+          s += strlen(buf);
+          num += strlen(buf);
+          */
+          break;
+        case 'c':
+          n = va_arg(ap, int);
+          itoa(n, buf);
+					memcpy(s, buf, 1);
+          s ++;
+          num ++;
+          break;
+        case 'l':
+          panic("vsprintf don't support! 'l'\n");
+          // ch = *(fmt++);
+          // switch (ch)
+          // {
+          // case 'u'://lu
+          //   ln = va_arg(ap,word_t);
+          //   // if(ln<0){
+					// 	//   *s++ = '-';
+					// 	//   n = -n;
+          //   //   num++;
+					//   // }
+          //   litoa(ln, buf);
+          //   memcpy(s, buf, strlen(buf));
+          //   s += strlen(buf);
+          //   num += strlen(buf);
+          //   break;
+          // case 'x'://lx
+          //   // ln = va_arg(ap, word_t);
+          //   // lxtoa(ln, buf);
+          //   // memcpy(s, buf, strlen(buf));
+          //   // s += strlen(buf);
+          //   // num += strlen(buf);
+          //   break;
+          // default:
+          //   panic("printf don't support!\n");
+          //   break;
+          // }
+          // break;
+				default:
+          // putch(ch);
+          *s++ = *fmt;
+          break;
+			}
+		}
+	} 
+	*s = '\0';
+  if(num > 0){
+    return num;
+  }
+  return -1;
 }
 
 int sprintf(char *out, const char *fmt, ...) {
+    va_list ap;
+    int ret = -1;
+    va_start(ap, fmt);
+    ret = vsprintf(out, fmt, ap);
+    va_end(ap);
+    return ret;
+/*
   va_list ap;
   int d;
-  char c;
-  // char *s, *ob = out;
-  char *s, *ob = out, *int_s;
+  char c, buf[128];
+  char *str, *ob = out;
   int size=0;
 
-  memset(out, '\0', strlen(out));
+  memset(buf, '\0', sizeof(buf));
   
   va_start(ap, fmt);
-
-  while ((c=*fmt++)) {
-    if(c != '%') {
-      *ob++ = c;
-    } 
-    else {
-      c = *(fmt++);  //fmt 当前指向%，需要指向后面那个字符
-      // c = *++fmt;
-      switch (c) {
-        case 's':
-            s = va_arg(ap, char *);
-            strcpy(ob, s);
-            // memmove(ob, s, strlen(s));
-            ob = ob + strlen(s);
-            size = strlen(out);
+    while ((c=*fmt++)) {
+      if(c != '%') {
+        *ob++ = c;
+      } 
+      else {
+        c = *(fmt++);
+        switch (c) {
+          case 's':
+            str = va_arg(ap, char *);
+            memcpy(ob, str, strlen(str));
+            ob = ob + strlen(str);
+            size = strlen(str);
             break;
 
-        case 'd':
-          d = va_arg(ap, int);
-          // itoa(d, ob);
-          int_s = itoa(d, ob);
-          // strcpy(ob, int_s);
-          memmove(ob, int_s, strlen(int_s));
-          ob = ob + strlen(int_s);
-          size = strlen(out);
-          break;
+          case 'd':
+            d = va_arg(ap, int);
+            if(d < 0) {
+              *ob++ = '-';
+              d = -d;
+            }
+            itoa(d, buf);
+            memcpy(ob, buf, strlen(buf));
+            ob = ob + strlen(buf);
+            size = strlen(buf);
+            break;
           
-        case 'c':   // TODO - test me ;
-          c = (char) va_arg(ap, int);
-          *ob++ = c;
-          break;
-
-        // case '%':
-
-        // NOTE - "%%s"
+          }
+        }
       }
-    }
-  }
+      *ob = '\0';
+      size++; 
 
   va_end(ap);
   return size;
+  */
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
   panic("Not implemented");
 }
 
+
 int vsnprintf(char *out, size_t n, const char *fmt, va_list ap) {
-  static char NUM_CHAR[] = "0123456789ABCDEF";
-  int len = 0;
-  char buf[128];
-  int buf_len = 0;
-  while(*fmt != '\0' && len < n){
-      switch(*fmt) {
-          case '%':
-            fmt++;
-            switch(*fmt) {
-              case 'd':
-                int val = va_arg(ap, int);
-                if(val == 0)
-                  out[len++] = '0';
-                if(val < 0) {
-                  out[len++] = '-';
-                  val = 0 - val;
-                }
-                for(buf_len = 0; val /= 10; buf_len++) {
-                  buf[buf_len] = NUM_CHAR(val % 10);
-                }
-
-                for(int i = buf_len - 1; i >= 0; i--) {
-                  out[len++] = buf[i];
-                }
-
-                break;
-              case 'u':
-                uint32_t uval = va_arg(ap, uint32_t);
-                for(buf_len = 0; uval /= 10; buf_len++) {
-                  buf[buf_len] = NUM_CHAR(uval % 10);
-                }
-
-                for(int i = buf_len - 1; i >= 0; i--) {
-                  out[len++] = buf[i];
-                }
-
-                break;
-              case 'c':
-                char c = (char)va_arg(ap, int);    //va_arg函数没有char这个参数
-                out[len++] = c;
-                break;
-              case 's':
-                char *s = va_arg(ap, char*);
-                for(int i = 0; s[i] != '\0'; i++)
-                  out[len++] = s[i];
-                break;
-              case 'p':
-                out[len++] = '0'; out[len++] = 'x';
-                uint32_t address = va_arg(ap, uint32_t);
-                for(buf_len = 0; address; address /= 16, buf_len++)
-                  buf[buf_len] = NUM_CHAR[address % 16];
-                for(int i = buf_len - 1; i >= 0; i--)
-                  out[len++] = buf[i];
-              break;               
-            }
-            break; // case % 的break.
-          case '\n':
-            out[len++] = '\n';
-            break;
-          default:
-            out[len++] = *fmt;
-      }
-      fmt++;
-  }
-  out[len] = '\0';
-  return len;
+  panic("Not implemented");
 }
 
 #endif
