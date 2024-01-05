@@ -258,7 +258,7 @@ void ftrace(Decode *s) {
   }
 
   if(func_index_cur != func_index_next) {
-    fprintf(ftrace_log_fp, "#x:", s->pc);
+    fprintf(ftrace_log_fp, "%#x:", s->pc);
     if(s->dnpc == sym_func[func_index_next].st_value) {
       null_counter++;
       for(int i = 0; i < null_counter; i++) {
@@ -349,6 +349,9 @@ void init_monitor(int argc, char *argv[]) {
   /* Open the log file. */
   init_log(log_file);
 
+  /* Open the ftrace log file. */
+  init_ftrace_log(ftrace_log_file);
+
   /* Initialize memory. */
   init_mem();
 
@@ -375,9 +378,6 @@ void init_monitor(int argc, char *argv[]) {
   /* Parse the ELF file. */
   load_elf();
   
-  /* Open the ftrace log file. */
-  init_ftrace_log(ftrace_log_file);
-
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(
     MUXDEF(CONFIG_ISA_x86,     "i686",
