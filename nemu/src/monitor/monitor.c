@@ -24,6 +24,7 @@ void init_device();
 void init_sdb();
 void init_disasm(const char *triple);
 void init_ringbuf();
+void init_ftrace_log(const char *log_file);
 
 static void welcome() {
   Log("Debug\tAddress sanitizer\tTrace\tITrace\tWatchpoint\tMTrace\tFTrace\tDifftest\t");
@@ -38,9 +39,6 @@ static void welcome() {
     MUXDEF(CONFIG_DIFFTEST, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
   );
 
-  // IFDEF(CONFIG_TRACE, Log("If trace is enabled, a log file will be generated "
-  //       "to record the trace. This may lead to a large log file. "
-  //       "If it is not necessary, you can disable it in menuconfig"));
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
   printf("For help, type \"help\"\n");
@@ -60,6 +58,7 @@ static char *diff_so_file = NULL;
 static char *img_file = NULL;
 static char *expr_file = NULL;
 static char *elf_file = NULL;
+static char *ftrace_log_file = NULL;
 static int difftest_port = 1234;
 
 typedef struct SYM_Func {
@@ -243,6 +242,7 @@ static  int j = 0;
 
 static int null_counter =0;
 void ftrace(Decode *s) {
+  extern FILE* ftrace_log_fp;
   int func_index_cur = _start_index, func_index_next = _start_index;
 
   for(int i = 0; i < func_num; i ++) {
@@ -258,22 +258,21 @@ void ftrace(Decode *s) {
   }
 
   if(func_index_cur != func_index_next) {
-    printf("%#x:", s->pc);
+    fprintf(ftrace_log_fp, "#x:", s->pc);
     if(s->dnpc == sym_func[func_index_next].st_value) {
       null_counter++;
       for(int i = 0; i < null_counter; i++) {
-        printf(" ");
+        fprintf(ftrace_log_fp ," ");
       }
-      printf("call [%s@%#x]\n", sym_func[func_index_next].st_name, s->dnpc);
+      fprintf(ftrace_log_fp, "call [%s@%#x]\n", sym_func[func_index_next].st_name, s->dnpc);
     } else {
       for(int i = 0; i < null_counter; i++) {
-        printf(" ");
+        fprintf(ftrace_log_fp ," ");
       }
       null_counter --;
-      printf("ret [%s]\n", sym_func[func_index_cur].st_name);
+      fprintf(ftrace_log_fp, "ret [%s]\n", sym_func[func_index_cur].st_name);
     }
   }
-// #endif
 
 }
 
@@ -307,11 +306,12 @@ static int parse_args(int argc, char *argv[]) {
     {"port"     , required_argument, NULL, 'p'},
     {"expr"     , required_argument, NULL, 'e'},
     {"elf"      , required_argument, NULL, 'f'},
+    {"ftrace_log"   , required_argument, NULL, 't'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:f:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:f:t:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
@@ -319,6 +319,7 @@ static int parse_args(int argc, char *argv[]) {
       case 'd': diff_so_file = optarg; break;
       case 'e': expr_file = optarg; break;
       case 'f': elf_file = optarg; break;
+      case 't': ftrace_log_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -327,6 +328,8 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-d,--diff=REF_SO        run DiffTest with reference REF_SO\n");
         printf("\t-p,--port=PORT          run DiffTest with port PORT\n");
         printf("\t-e,--expr=FILE          test expr\n");
+        printf("\t-f,--elf=FILE           parse the ELF file\n");
+        printf("\t-t,--ftrace_log=FILE    output ftrace log to FILE\n");
         printf("\n");
         exit(0);
     }
@@ -344,7 +347,7 @@ void init_monitor(int argc, char *argv[]) {
   init_rand();
 
   /* Open the log file. */
-  init_log(log_file);            // log_file: stdout -> log_file
+  init_log(log_file);
 
   /* Initialize memory. */
   init_mem();
@@ -366,11 +369,14 @@ void init_monitor(int argc, char *argv[]) {
 
   init_ringbuf(); // TODO - Add to config
   
-  /* Test expr */
+  /* Test sdb expression */
   test_expr();
 
-  /* elf!!*/
+  /* Parse the ELF file. */
   load_elf();
+  
+  /* Open the ftrace log file. */
+  init_ftrace_log(ftrace_log_file);
 
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(
