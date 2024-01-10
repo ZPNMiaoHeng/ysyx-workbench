@@ -52,7 +52,7 @@ void init_ringbuf() {
     memset(ringbuf[i].inst_error, '\0', sizeof(ringbuf[i].inst_error));
   }
 }
-
+#ifdef CONFIG_RINGTRACE
 void trigger_ringbuf() {
   Log("Find error instruction");
   strcpy(ringbuf[rb_index % NR_RB].inst_error, "--->");
@@ -61,6 +61,7 @@ void trigger_ringbuf() {
     printf("%d\t%s\t%s\n", ringbuf[i].NO, ringbuf[i].inst_error, ringbuf[i].buf);
   }
 }
+#endif
 
 void device_update();
 
