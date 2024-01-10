@@ -38,7 +38,7 @@ typedef struct ringbuf {
   char inst_error[15];
 } RB;
 RB ringbuf[NR_RB] = {};
-#ifdef CONFIG_RINGTRACE_COND
+#ifdef CONFIG_RINGTRACE
 static int RB_index =0, rb_index=0;  // rb_index = RB_index % 32
 #endif
 void ftrace(Decode *s);
@@ -55,6 +55,7 @@ void init_ringbuf() {
 
 void trigger_ringbuf() {
   Log("Find error instruction");
+  strcpy(ringbuf[rb_index % NR_RB].inst_error, "--->");
   int i;
   for (i = 0; i < NR_RB; i ++ ) {
     printf("%d\t%s\t%s\n", ringbuf[i].NO, ringbuf[i].inst_error, ringbuf[i].buf);
@@ -73,11 +74,10 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
   if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
   IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 
-#ifdef CONFIG_RINGTRACE_COND
+#ifdef CONFIG_RINGTRACE
   rb_index = RB_index % NR_RB;
   strcpy(ringbuf[rb_index].buf, _this->logbuf);
   if(nemu_state.state == NEMU_ABORT) {
-    strcpy(ringbuf[rb_index % NR_RB].inst_error, "--->");
     trigger_ringbuf();
   }
   RB_index ++;
@@ -148,6 +148,11 @@ static void statistic() {
 
 void assert_fail_msg() {
   isa_reg_display();
+  
+  #ifdef CONFIG_RINGTRACE
+    trigger_ringbuf();
+  #endif
+      
   statistic();
 }
 
