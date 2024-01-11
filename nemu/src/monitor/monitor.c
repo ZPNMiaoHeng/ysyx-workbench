@@ -107,6 +107,7 @@ static long test_expr() {
   return 0;
 }
 
+#ifdef CONFIG_FTRACE
 static long load_elf() {
   if(elf_file == NULL) {
     Log("No elf is given.");
@@ -283,6 +284,8 @@ void ftrace(Decode *s) {
 
 }
 
+#endif
+
 static long load_img() {
   if (img_file == NULL) {
     Log("No image is given. Use the default build-in image.");
@@ -390,7 +393,7 @@ void init_monitor(int argc, char *argv[]) {
   test_expr();
 
   /* Parse the ELF file. */
-  load_elf();
+  IFDEF(CONFIG_FTRACE, load_elf());
   
 #ifndef CONFIG_ISA_loongarch32r
   IFDEF(CONFIG_ITRACE, init_disasm(

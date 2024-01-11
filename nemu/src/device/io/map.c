@@ -59,7 +59,7 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
   check_bound(map, addr);
   
   #ifdef CONFIG_DTRACE
-    fprintf(dtrace_log_fp, "map_read:" "address (" FMT_PADDR ")  {%s} at pc = " FMT_WORD"\n", addr, map->name, cpu.pc);
+    fprintf(dtrace_log_fp, "at pc = " FMT_WORD "\tmap_read:   address (" FMT_PADDR ")  {%s} \n", cpu.pc, addr, map->name);
   #endif
   
   paddr_t offset = addr - map->low;
@@ -73,7 +73,7 @@ void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
   check_bound(map, addr);
 
   #ifdef CONFIG_DTRACE
-    fprintf(dtrace_log_fp, "map_write:" "address (" FMT_PADDR ")  {%s} at pc = " FMT_WORD"\n", addr, map->name, cpu.pc);
+    fprintf(dtrace_log_fp, "at pc = " FMT_WORD "\tmap_write:  address (" FMT_PADDR ")  {%s} \n", cpu.pc, addr, map->name);
   #endif
   
   paddr_t offset = addr - map->low;
