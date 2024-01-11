@@ -25,18 +25,24 @@ void init_sdb();
 void init_disasm(const char *triple);
 void init_ringbuf();
 void init_ftrace_log(const char *log_file);
+void init_dtrace_log(const char *log_file);
 
 static void welcome() {
-  Log("Debug\tAddress sanitizer\tTrace\tITrace\tWatchpoint\tMTrace\tFTrace\tDifftest\t");
-  Log("%s\t\t%s\t\t\t%s\t%s\t%s\t\t%s\t%s\t%s\t",
+  Log("Debug\tAddress sanitizer\tWatchpoint\tDifftest\t");
+  Log("%s\t\t%s\t\t\t%s\t\t%s\t",
     MUXDEF(CONFIG_CC_DEBUG, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_CC_ASAN, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_DIFFTEST, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+  );
+
+  Log("Trace\tITrace\tMTrace\tDTrace\tFTrace\t");
+  Log("%s\t\t%s\t%s\t%s\t%s\t",
     MUXDEF(CONFIG_TRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_RINGTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-    MUXDEF(CONFIG_WATCHPOINT_COND, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
     MUXDEF(CONFIG_MTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-    MUXDEF(CONFIG_FTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
-    MUXDEF(CONFIG_DIFFTEST, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
+    MUXDEF(CONFIG_DTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED)),
+    MUXDEF(CONFIG_FTRACE, ANSI_FMT("ON", ANSI_FG_GREEN), ANSI_FMT("OFF", ANSI_FG_RED))
   );
 
   Log("Build time: %s, %s", __TIME__, __DATE__);
@@ -59,6 +65,7 @@ static char *img_file = NULL;
 static char *expr_file = NULL;
 static char *elf_file = NULL;
 static char *ftrace_log_file = NULL;
+static char *dtrace_log_file = NULL;
 static int difftest_port = 1234;
 
 typedef struct SYM_Func {
@@ -307,11 +314,12 @@ static int parse_args(int argc, char *argv[]) {
     {"expr"     , required_argument, NULL, 'e'},
     {"elf"      , required_argument, NULL, 'f'},
     {"ftrace_log"   , required_argument, NULL, 't'},
+    {"dtrace_log"   , required_argument, NULL, 'r'},
     {"help"     , no_argument      , NULL, 'h'},
     {0          , 0                , NULL,  0 },
   };
   int o;
-  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:f:t:", table, NULL)) != -1) {
+  while ( (o = getopt_long(argc, argv, "-bhl:d:p:e:f:t:r:", table, NULL)) != -1) {
     switch (o) {
       case 'b': sdb_set_batch_mode(); break;
       case 'p': sscanf(optarg, "%d", &difftest_port); break;
@@ -320,6 +328,7 @@ static int parse_args(int argc, char *argv[]) {
       case 'e': expr_file = optarg; break;
       case 'f': elf_file = optarg; break;
       case 't': ftrace_log_file = optarg; break;
+      case 'r': dtrace_log_file = optarg; break;
       case 1: img_file = optarg; return 0;
       default:
         printf("Usage: %s [OPTION...] IMAGE [args]\n\n", argv[0]);
@@ -330,6 +339,7 @@ static int parse_args(int argc, char *argv[]) {
         printf("\t-e,--expr=FILE          test expr\n");
         printf("\t-f,--elf=FILE           parse the ELF file\n");
         printf("\t-t,--ftrace_log=FILE    output ftrace log to FILE\n");
+        printf("\t-r,--dtrace_log=FILE    output dtrace log to FILE\n");
         printf("\n");
         exit(0);
     }
@@ -350,7 +360,11 @@ void init_monitor(int argc, char *argv[]) {
   init_log(log_file);
 
   /* Open the ftrace log file. */
-  init_ftrace_log(ftrace_log_file);
+  IFDEF(CONFIG_FTRACE, init_ftrace_log(ftrace_log_file));
+
+  /* Open the ftrace log file. */
+  // IFDEF(CONFIG_DTRACE, init_dtrace_log(ftrace_log_file));
+  IFDEF(CONFIG_DTRACE, init_dtrace_log(dtrace_log_file));
 
   /* Initialize memory. */
   init_mem();
