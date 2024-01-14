@@ -89,7 +89,7 @@ static int cmd_x(char *args){
   paddr_t addr;
   sscanf(args,"%d %x", &step, &addr);
   if(addr < 0x80000000 || addr > 0x87ffffff) {
-    printf(ANSI_FMT("Out of mem bound!!!\n", ANSI_FG_RED));
+    printf(ANSI_FMT("Out of mem bound [0x80000000: 0x88000000]\n", ANSI_FG_RED));
     return 0;
   }
   int i;
