@@ -5,9 +5,6 @@
 #if !defined(__ISA_NATIVE__) || defined(__NATIVE_USE_KLIB__)
 static unsigned long int next = 1;
 
-// extern Area heap;
-// char *hbrk = NULL;
-
 int rand(void) {
   // RAND_MAX assumed to be 32767
   next = next * 1103515245 + 12345;
@@ -69,6 +66,10 @@ mini_itoa(long value, unsigned int radix, int uppercase, int unsig,char *buffer)
 
 void itoa(const int n, char *buf) {
   mini_itoa(n, 10, 1, 0, buf);
+}
+
+void xtoa(const int n, char *buf) {
+  mini_itoa(n, 16, 1, 0, buf);
 }
 
 

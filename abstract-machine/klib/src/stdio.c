@@ -53,14 +53,11 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
           num += strlen(str);
 					break;
         case 'x':
-          panic("vsprintf don't support! 'x'\n");
-          /*
           n = va_arg(ap, int);
           xtoa(n, buf);
           memcpy(s, buf, strlen(buf));
           s += strlen(buf);
           num += strlen(buf);
-          */
           break;
         case 'c':
           c = (char)va_arg(ap, int);

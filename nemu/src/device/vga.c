@@ -71,6 +71,14 @@ static inline void update_screen() {
 #endif
 
 void vga_update_screen() {
+
+#ifdef CONFIG_TARGET_AM
+  if(io_read(AM_GPU_FBDRAW).sync == 1) {
+    update_screen();
+    io_write(AM_GPU_FBDRAW).sync = 0;
+  }
+#endif
+
   // TODO: call `update_screen()` when the sync register is non-zero,
   // then zero out the sync register
 }
