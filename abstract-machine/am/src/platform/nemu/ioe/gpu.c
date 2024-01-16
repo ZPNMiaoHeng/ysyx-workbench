@@ -6,14 +6,14 @@
 int width = 0, height = 0;
 
 void __am_gpu_init() {
-  int i;
+  // int i;
   height = inl(VGACTL_ADDR) & 0xFFFF;
   width = inl(VGACTL_ADDR) >> 16;
-  uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
-  for (i = 0; i < width * height; i ++) {
-    fb[i] = i;
-  }
-  outl(SYNC_ADDR, 1);
+  // uint32_t *fb = (uint32_t *)(uintptr_t)FB_ADDR;
+  // for (i = 0; i < width * height; i ++) {
+    // fb[i] = i;
+  // }
+  // outl(SYNC_ADDR, 1);
 }
 
 void __am_gpu_config(AM_GPU_CONFIG_T *cfg) {
@@ -38,7 +38,6 @@ void __am_gpu_fbdraw(AM_GPU_FBDRAW_T *ctl) {
       x_t = x + j;
       y_t = y + i;
       fb[y_t * width + x_t] = pixels[cnt++];
-
     }
   }
 
