@@ -33,7 +33,11 @@ AM_DEVREG(23, NET_TX,       WR, Area buf);
 AM_DEVREG(24, NET_RX,       WR, Area buf);
 
 // Input
-
+// This code defines a set of key names and their corresponding key codes.
+// The macro AM_KEYS(_) is used to define a list of key names, and the macro AM_KEY_NAMES(key) is used to generate key code enum values.
+// For example, _(ESCAPE) will be expanded to AM_KEY_ESCAPE, and so on for all the keys listed in the AM_KEYS macro.
+// The resulting enum will have key code values for all the keys, with AM_KEY_NONE being 0 and the rest being assigned sequentially.
+// (_)代表一个参数；
 #define AM_KEYS(_) \
   _(ESCAPE) _(F1) _(F2) _(F3) _(F4) _(F5) _(F6) _(F7) _(F8) _(F9) _(F10) _(F11) _(F12) \
   _(GRAVE) _(1) _(2) _(3) _(4) _(5) _(6) _(7) _(8) _(9) _(0) _(MINUS) _(EQUALS) _(BACKSPACE) \
@@ -44,6 +48,7 @@ AM_DEVREG(24, NET_RX,       WR, Area buf);
   _(UP) _(DOWN) _(LEFT) _(RIGHT) _(INSERT) _(DELETE) _(HOME) _(END) _(PAGEUP) _(PAGEDOWN)
 
 #define AM_KEY_NAMES(key) AM_KEY_##key,
+// 宏定义AM_KEYS展开就是AM_KEY_NAMES(ESCAPE)...
 enum {
   AM_KEY_NONE = 0,
   AM_KEYS(AM_KEY_NAMES)
