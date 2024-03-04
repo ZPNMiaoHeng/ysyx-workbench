@@ -63,10 +63,8 @@ static int cmd_si(char *args){
 
   if(step == 0) {
     cpu_exec(1);
-  } else if(step > 0 && step < 11) {
+  } else if(step > 0) {  //MAX_INST_TO_PRINT = 10, >=10 不会打印执行信息
     cpu_exec(step);
-  } else {
-    Log("NEMU sdb only support 10 step!");
   }
   return 0;
 }
@@ -91,7 +89,7 @@ static int cmd_x(char *args){
   paddr_t addr;
   sscanf(args,"%d %x", &step, &addr);
   if(addr < 0x80000000 || addr > 0x87ffffff) {
-    printf(ANSI_FMT("Out of mem bound!!!\n", ANSI_FG_RED));
+    printf(ANSI_FMT("Out of mem bound [0x80000000: 0x88000000]\n", ANSI_FG_RED));
     return 0;
   }
   int i;

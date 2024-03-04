@@ -71,13 +71,21 @@ static inline void update_screen() {
 #endif
 
 void vga_update_screen() {
+
+// #ifdef CONFIG_TARGET_AM
+  // if(io_read(AM_GPU_FBDRAW).sync == 1) {
+    update_screen();
+    // io_write(AM_GPU_FBDRAW).sync = 0;
+  // }
+// #endif
+
   // TODO: call `update_screen()` when the sync register is non-zero,
   // then zero out the sync register
 }
 
 void init_vga() {
   vgactl_port_base = (uint32_t *)new_space(8);
-  vgactl_port_base[0] = (screen_width() << 16) | screen_height();
+  vgactl_port_base[0] = (screen_width() << 16) | screen_height();        // 这里实现了将屏幕大小寄存器内容输出
 #ifdef CONFIG_HAS_PORT_IO
   add_pio_map ("vgactl", CONFIG_VGA_CTL_PORT, vgactl_port_base, 8, NULL);
 #else

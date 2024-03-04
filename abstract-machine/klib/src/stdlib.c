@@ -29,14 +29,73 @@ int atoi(const char* nptr) {
   return x;
 }
 
+static int
+mini_itoa(long value, unsigned int radix, int uppercase, int unsig,char *buffer) {
+
+  char *pbuffer = buffer;
+  int negative = 0;
+  int i, len;
+
+  if (radix > 16) return 0;
+
+  if (value < 0 && !unsig) {
+    negative = 1;
+    value = -value;
+  }
+
+  do {
+    int digit = value % radix;
+    *(pbuffer++) = (digit < 10 ? '0' + digit : (uppercase ? 'A' : 'a') + digit - 10);
+    value /= radix;
+  } while (value > 0);
+
+  if (negative)
+    *(pbuffer++) = '-';
+
+  *(pbuffer) = '\0';
+
+  len = (pbuffer - buffer);
+  for (i = 0; i < len / 2; i++) {
+    char j = buffer[i];
+    buffer[i] = buffer[len-i-1];
+    buffer[len-i-1] = j;
+  }
+
+  return len;
+}
+
+void itoa(const int n, char *buf) {
+  mini_itoa(n, 10, 1, 0, buf);
+}
+
+void xtoa(const int n, char *buf) {
+  mini_itoa(n, 16, 1, 0, buf);
+}
+
+
+void *hbrk = NULL;
+
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:
   //   panic() -> putchar() -> (glibc) -> malloc() -> panic()
-#if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
-  panic("Not implemented");
-#endif
-  return NULL;
+
+// #if !(defined(__ISA_NATIVE__) && defined(__NATIVE_USE_KLIB__))
+//   panic("Not implemented");
+// #endif
+  if(hbrk == NULL ) {
+    hbrk = (void *)ROUNDUP(heap.start, 8);
+  }
+
+  size = (size_t)ROUNDUP(size, 8);
+  char *old = hbrk;
+  hbrk += size;
+  assert((uintptr_t)heap.start <= (uintptr_t)hbrk && (uintptr_t)hbrk < (uintptr_t)heap.end);
+  for (uint64_t *p = (uint64_t *)old; p != (uint64_t *)hbrk; p ++) {
+    *p = 0;
+  }
+  return old;
+  // return NULL;
 }
 
 void free(void *ptr) {
