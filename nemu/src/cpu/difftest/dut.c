@@ -63,10 +63,10 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   assert(ref_so_file != NULL);
 
   void *handle;
-  handle = dlopen(ref_so_file, RTLD_LAZY);
+  handle = dlopen(ref_so_file, RTLD_LAZY);   
   assert(handle);
 
-  ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");
+  ref_difftest_memcpy = dlsym(handle, "difftest_memcpy");    //* 通过使用dlsym获取difftest库中对应函数，在本地使用；
   assert(ref_difftest_memcpy);
 
   ref_difftest_regcpy = dlsym(handle, "difftest_regcpy");
@@ -81,10 +81,8 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
   void (*ref_difftest_init)(int) = dlsym(handle, "difftest_init");
   assert(ref_difftest_init);
 
-  Log("Differential testing: %s", ANSI_FMT("ON", ANSI_FG_GREEN));
-  Log("The result of every instruction will be compared with %s. "
-      "This will help you a lot for debugging, but also significantly reduce the performance. "
-      "If it is not necessary, you can turn it off in menuconfig.", ref_so_file);
+  // Log("Differential testing: %s", ANSI_FMT("ON", ANSI_FG_GREEN));
+  Log("The result of every instruction will be compared with %s. ", ref_so_file);
 
   ref_difftest_init(port);
   ref_difftest_memcpy(RESET_VECTOR, guest_to_host(RESET_VECTOR), img_size, DIFFTEST_TO_REF);
