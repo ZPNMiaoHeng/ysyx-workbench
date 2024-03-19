@@ -20,7 +20,7 @@
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
   int i ;
   if( cpu.pc != ref_r->pc ) {
-    printf("pc is error!%x\t%x\n", cpu.pc , ref_r->pc);
+    Log("pc is error!\tcpu pc is %x\t, ref pc is %x", cpu.pc , ref_r->pc);
     return false;
   }
   for( i = 0; i < 32; i ++) {
