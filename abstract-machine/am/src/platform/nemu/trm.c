@@ -22,6 +22,6 @@ void halt(int code) {
 }
 
 void _trm_init() {
-  int ret = main(mainargs);
+  int ret = main(mainargs);   // 如何初始化外设函数呢??
   halt(ret);
 }
