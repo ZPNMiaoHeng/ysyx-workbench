@@ -20,8 +20,7 @@
 
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
-  // word_t mepc, mstatus, mcause;
-  // word_t csr[0x343]; // mepc = 0; mstatus; mcause;
+  // word_t csr[32]; // define csrs
   vaddr_t pc;
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
