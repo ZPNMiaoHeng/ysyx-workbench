@@ -23,25 +23,27 @@ const char *regs[] = {
   "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"
 };
 
+// TODO: struct csrs: name，no
 const char *csrs[] = {
   "mstatus",      // 0x300
   // "mie",          // 0x304
   "mepc",         // 0x341
-  "mcause"       // 0x342
-  // "mtval",        // 0x343
-  // "mip",          // 0x344
+  "mcause",        // 0x342
+  "mtval",       // 0x343 
+  "mip",          // 0x344
+  "mtvec"         // 0x305
   // "mscratch"      // 0x310
 };
 
 void isa_reg_display() {
-  int i;
+  int i, j;
   for(i = 0; i < 32; i++) {
     printf("x%d\t%s\t%#x", i+1, regs[i], cpu.gpr[i]);
     printf("\n");
   }
-
-  for(i = 0; i < 3; i++) {
-    printf("x%d\t%s\t%#x", i+1, csrs[i], cpu.csr[i]);
+  printf("----- csr -----\n");
+  for(j = 0; j < 6; j++) {
+    printf("%d\t%s\t%#x", j, csrs[j], cpu.csr[j]);
     printf("\n");
   }
 }
