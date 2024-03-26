@@ -37,15 +37,16 @@ const char *csrs[] = {
 
 void isa_reg_display() {
   int i, j;
-  for(i = 0; i < 32; i++) {
-    printf("x%d\t%s\t%#x", i+1, regs[i], cpu.gpr[i]);
+  for(i = 0; i < 4; i++) {
+    for(j = 0; j < 8; j++ ) {
+      printf("x%-2d(%s):%#-8x\t", 8*i+j, regs[8*i+j], cpu.gpr[8*i+j]);
+    }
     printf("\n");
   }
-  printf("----- csr -----\n");
   for(j = 0; j < 6; j++) {
-    printf("%d\t%s\t%#x", j, csrs[j], cpu.csr[j]);
-    printf("\n");
+    printf("%s(%d):%#x\t", csrs[j], j, cpu.csr[j]);
   }
+    printf("\n");
 }
 
 bool isa_reg_name(const char *s) {
