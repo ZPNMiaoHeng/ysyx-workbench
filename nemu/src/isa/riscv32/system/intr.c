@@ -21,9 +21,9 @@ word_t isa_raise_intr(word_t NO, vaddr_t epc) {
    * Then return the address of the interrupt/exception vector.
    */
   if(NO == 1) {  // yield
-    // csr(1) = epc;
-    // csr(2) = 0x0000000b;
-    // return csr(5);
+    csr(1) = epc;
+    csr(2) = 0x0000000b;
+    return csr(5);
   }
 
   return 0;

@@ -20,11 +20,14 @@
 
 typedef struct {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
-  // word_t csr[6]; // define csrs: mepc, mstatus, mcause, mtval, mip, mtvec
   vaddr_t pc;
+  word_t csr[6]; // define csrs: mepc, mstatus, mcause, mtval, mip, mtvec
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
+// typedef struct {
   // word_t csr[6]; // define csrs: mepc, mstatus, mcause, mtval, mip, mtvec
+// } riscv32_CPU_state_csr;
+
 // decode
 typedef struct {
   union {
