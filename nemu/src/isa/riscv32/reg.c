@@ -44,7 +44,7 @@ void isa_reg_display() {
     printf("\n");
   }
   for(j = 0; j < 6; j++) {
-    printf("%s(%d):%#x\t", csrs[j], j, cpu.csr[j]);
+    printf("%s(%d):%#-8x\t", csrs[j], j, cpu.csr[j]);
   }
     printf("\n");
 }
