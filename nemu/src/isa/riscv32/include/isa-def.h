@@ -24,10 +24,6 @@ typedef struct {
   word_t csr[6]; // define csrs: mepc, mstatus, mcause, mtval, mip, mtvec
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 
-// typedef struct {
-  // word_t csr[6]; // define csrs: mepc, mstatus, mcause, mtval, mip, mtvec
-// } riscv32_CPU_state_csr;
-
 // decode
 typedef struct {
   union {

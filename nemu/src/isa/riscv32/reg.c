@@ -43,10 +43,10 @@ void isa_reg_display() {
     }
     printf("\n");
   }
-  // for(j = 0; j < 6; j++) {
-    // printf("%s(%d):%#-8x\t", csrs[j], j, csr[j]);
-  // }
-    // printf("\n");
+  for(j = 0; j < 6; j++) {
+    printf("%s(%d):%#-8x\t", csrs[j], j, cpu.csr[j]);
+  }
+    printf("\n");
 }
 
 bool isa_reg_name(const char *s) {
